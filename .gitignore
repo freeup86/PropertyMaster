@@ -1,0 +1,50 @@
+# .NET build artifacts
+bin/
+obj/
+*.user
+*.suo
+.vs/
+.vscode/
+.idea/
+
+# Node modules
+node_modules/
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio files
+*.user
+*.userosscache
+*.sln.docstates
+
+# User-specific files
+*.rsuser
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Docker
+.docker/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# macOS
+.DS_Store

@@ -1,0 +1,6 @@
+@PropertyMaster.PropertyManagement.API_HostAddress = http://localhost:5044
+
+GET {{PropertyMaster.PropertyManagement.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
