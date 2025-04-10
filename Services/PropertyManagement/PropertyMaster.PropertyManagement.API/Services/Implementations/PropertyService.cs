@@ -67,6 +67,9 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
             if (property == null)
                 return null;
 
+            // Before mapping, debug log the DTO values
+            _logger.LogInformation("Updating property with ID {PropertyId}. DTO values: {@PropertyDto}", propertyId, propertyDto);
+
             _mapper.Map(propertyDto, property);
             property.ModifiedDate = DateTime.UtcNow;
             

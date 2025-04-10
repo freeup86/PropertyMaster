@@ -4,22 +4,22 @@ using System.ComponentModel.DataAnnotations;
 
 namespace PropertyMaster.Models.Entities
 {
-    public class Category : BaseEntity
+    public class Account : BaseEntity
     {
+        [Required]
+        public Guid UserId { get; set; }
+        
         [Required]
         [MaxLength(100)]
         public string Name { get; set; }
         
         [Required]
         [MaxLength(50)]
-        public string Type { get; set; }  // Income, Expense, etc.
+        public string Type { get; set; }  // Checking, Savings, Credit Card, etc.
         
-        public bool IsTaxDeductible { get; set; }
+        public decimal Balance { get; set; }
         
         [MaxLength(255)]
         public string Description { get; set; }
-        
-        // Navigation properties
-        public virtual ICollection<Transaction> Transactions { get; set; }
     }
 }

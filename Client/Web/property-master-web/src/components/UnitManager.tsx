@@ -92,6 +92,14 @@ const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
     setError(null);
   };
 
+  const handleFormSubmit = (values: CreateUnitRequest | UpdateUnitRequest) => {
+    if (dialogMode === DialogMode.ADD) {
+      handleCreateUnit(values as CreateUnitRequest);
+    } else {
+      handleUpdateUnit(values as UpdateUnitRequest);
+    }
+  };
+
   // Force refresh of unit list when units are modified
   const key = `property-${propertyId}-units-${refreshTrigger}`;
 
@@ -123,7 +131,7 @@ const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
           )}
           <UnitForm 
             initialValues={selectedUnit || undefined}
-            onSubmit={dialogMode === DialogMode.ADD ? handleCreateUnit : handleUpdateUnit}
+            onSubmit={handleFormSubmit}
             onCancel={handleCloseDialog}
             isEditing={dialogMode === DialogMode.EDIT}
           />

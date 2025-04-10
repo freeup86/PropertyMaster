@@ -1,20 +1,26 @@
+// In PropertyDetail.tsx, add a Tabs component to switch between units and tenants
+
 import React, { useEffect, useState } from 'react';
+import PropertyFinancialDashboard from '../components/financial/PropertyFinancialDashboard';
+import TransactionManager from '../components/financial/TransactionManager';
+
 import { 
   Container, 
   Typography, 
   Paper, 
   Box, 
-  Grid, 
   Button, 
   Divider, 
   Chip,
   Alert,
   CircularProgress,
   Dialog,
-  DialogActions,
+  DialogTitle,
   DialogContent,
+  DialogActions,
   DialogContentText,
-  DialogTitle
+  Tabs,
+  Tab
 } from '@mui/material';
 import { 
   Edit as EditIcon, 
@@ -24,6 +30,33 @@ import {
 import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import propertyService, { Property } from '../services/propertyService';
 import UnitManager from '../components/UnitManager';
+import TenantManager from '../components/TenantManager';
+
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+const TabPanel = (props: TabPanelProps) => {
+  const { children, value, index, ...other } = props;
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`property-tabpanel-${index}`}
+      aria-labelledby={`property-tab-${index}`}
+      {...other}
+    >
+      {value === index && (
+        <Box sx={{ pt: 2 }}>
+          {children}
+        </Box>
+      )}
+    </div>
+  );
+};
 
 const PropertyDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +65,7 @@ const PropertyDetail: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [tabValue, setTabValue] = useState(0);
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -60,6 +94,10 @@ const PropertyDetail: React.FC = () => {
       setError('Failed to delete property. Please try again.');
     }
     setDeleteDialogOpen(false);
+  };
+
+  const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
   };
 
   const formatCurrency = (value: number): string => {
@@ -128,39 +166,44 @@ const PropertyDetail: React.FC = () => {
         <Chip label={`${property.city}, ${property.state}`} />
       </Box>
 
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8}>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+        <Box sx={{ 
+          flex: '1 1 auto', 
+          minWidth: { xs: '100%', md: '60%' } 
+        }}>
           <Paper sx={{ p: 3, mb: 3 }}>
             <Typography variant="h6" gutterBottom>
               Property Details
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box>
                 <Typography variant="subtitle2" color="textSecondary">
                   Address
                 </Typography>
                 <Typography variant="body1">
                   {property.address}, {property.city}, {property.state} {property.zipCode}, {property.country}
                 </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Acquisition Date
-                </Typography>
-                <Typography variant="body1">
-                  {formatDate(property.acquisitionDate)}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Last Valuation Date
-                </Typography>
-                <Typography variant="body1">
-                  {formatDate(property.lastValuationDate)}
-                </Typography>
-              </Grid>
-            </Grid>
+              </Box>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ flex: '1 1 auto', minWidth: { xs: '100%', sm: '45%' } }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Acquisition Date
+                  </Typography>
+                  <Typography variant="body1">
+                    {formatDate(property.acquisitionDate)}
+                  </Typography>
+                </Box>
+                <Box sx={{ flex: '1 1 auto', minWidth: { xs: '100%', sm: '45%' } }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Last Valuation Date
+                  </Typography>
+                  <Typography variant="body1">
+                    {formatDate(property.lastValuationDate)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
           </Paper>
 
           <Paper sx={{ p: 3 }}>
@@ -168,24 +211,26 @@ const PropertyDetail: React.FC = () => {
               Financial Overview
             </Typography>
             <Divider sx={{ mb: 2 }} />
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Acquisition Price
-                </Typography>
-                <Typography variant="body1">
-                  {formatCurrency(property.acquisitionPrice)}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <Typography variant="subtitle2" color="textSecondary">
-                  Current Value
-                </Typography>
-                <Typography variant="body1">
-                  {formatCurrency(property.currentValue)}
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                <Box sx={{ flex: '1 1 auto', minWidth: { xs: '100%', sm: '45%' } }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Acquisition Price
+                  </Typography>
+                  <Typography variant="body1">
+                    {formatCurrency(property.acquisitionPrice)}
+                  </Typography>
+                </Box>
+                <Box sx={{ flex: '1 1 auto', minWidth: { xs: '100%', sm: '45%' } }}>
+                  <Typography variant="subtitle2" color="textSecondary">
+                    Current Value
+                  </Typography>
+                  <Typography variant="body1">
+                    {formatCurrency(property.currentValue)}
+                  </Typography>
+                </Box>
+              </Box>
+              <Box sx={{ flex: '1 1 auto', minWidth: { xs: '100%', sm: '45%' } }}>
                 <Typography variant="subtitle2" color="textSecondary">
                   Appreciation
                 </Typography>
@@ -196,18 +241,36 @@ const PropertyDetail: React.FC = () => {
                   {formatCurrency(property.currentValue - property.acquisitionPrice)} 
                   ({((property.currentValue - property.acquisitionPrice) / property.acquisitionPrice * 100).toFixed(1)}%)
                 </Typography>
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           </Paper>
-        </Grid>
+        </Box>
 
-        <Grid item xs={12} md={4}>
+        <Box sx={{ 
+          flex: '1 1 auto', 
+          minWidth: { xs: '100%', md: '35%' } 
+        }}>
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Units
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-            <UnitManager propertyId={property.id} />
+            <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+              <Tabs value={tabValue} onChange={handleTabChange} aria-label="property tabs">
+                <Tab label="Units" id="property-tab-0" aria-controls="property-tabpanel-0" />
+                <Tab label="Tenants" id="property-tab-1" aria-controls="property-tabpanel-1" />
+                <Tab label="Financials" id="property-tab-2" aria-controls="property-tabpanel-2" />
+                <Tab label="Transactions" id="property-tab-3" aria-controls="property-tabpanel-3" />
+              </Tabs>
+            </Box>
+            <TabPanel value={tabValue} index={0}>
+              <UnitManager propertyId={property.id} />
+            </TabPanel>
+            <TabPanel value={tabValue} index={1}>
+              <TenantManager propertyId={property.id} />
+            </TabPanel>
+            <TabPanel value={tabValue} index={2}>
+              <PropertyFinancialDashboard propertyId={property.id} />
+            </TabPanel>
+            <TabPanel value={tabValue} index={3}>
+              <TransactionManager propertyId={property.id} />
+            </TabPanel>
           </Paper>
 
           <Paper sx={{ p: 3 }}>
@@ -237,8 +300,8 @@ const PropertyDetail: React.FC = () => {
               </Button>
             </Box>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
 
       {/* Delete Confirmation Dialog */}
       <Dialog

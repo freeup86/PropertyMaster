@@ -30,6 +30,8 @@ builder.Services.AddDbContext<PropertyMasterApiContext>(options =>
 // Register services
 builder.Services.AddScoped<IPropertyService, PropertyService>();
 builder.Services.AddScoped<IUnitService, UnitService>();
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IFinancialService, FinancialService>();
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(Program).Assembly);

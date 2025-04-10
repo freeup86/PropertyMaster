@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PropertyMaster.PropertyManagement.API;
 
@@ -11,9 +12,11 @@ using PropertyMaster.PropertyManagement.API;
 namespace PropertyMaster.PropertyManagement.API.Migrations
 {
     [DbContext(typeof(PropertyMasterApiContext))]
-    partial class PropertyMasterApiContextModelSnapshot : ModelSnapshot
+    [Migration("20250409150857_AddTenantEntity")]
+    partial class AddTenantEntity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,44 +24,6 @@ namespace PropertyMaster.PropertyManagement.API.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("PropertyMaster.Models.Entities.Account", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<decimal>("Balance")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Accounts");
-                });
 
             modelBuilder.Entity("PropertyMaster.Models.Entities.Category", b =>
                 {
@@ -68,11 +33,6 @@ namespace PropertyMaster.PropertyManagement.API.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
 
                     b.Property<bool>("IsTaxDeductible")
                         .HasColumnType("bit");
@@ -216,12 +176,8 @@ namespace PropertyMaster.PropertyManagement.API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("AccountId")
+                    b.Property<Guid>("AccountId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("AccountName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
@@ -240,33 +196,18 @@ namespace PropertyMaster.PropertyManagement.API.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<bool>("IsPaid")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsRecurring")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsTaxDeductible")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("NextDueDate")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Notes")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("PaidDate")
-                        .HasColumnType("datetime2");
-
                     b.Property<Guid>("PropertyId")
                         .HasColumnType("uniqueidentifier");
-
-                    b.Property<int?>("RecurrencePattern")
-                        .HasColumnType("int");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -404,7 +345,7 @@ namespace PropertyMaster.PropertyManagement.API.Migrations
 
             modelBuilder.Entity("PropertyMaster.Models.Entities.Transaction", b =>
                 {
-                    b.HasOne("PropertyMaster.Models.Entities.Category", "Category")
+                    b.HasOne("PropertyMaster.Models.Entities.Category", null)
                         .WithMany("Transactions")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -419,8 +360,6 @@ namespace PropertyMaster.PropertyManagement.API.Migrations
                     b.HasOne("PropertyMaster.Models.Entities.Unit", "Unit")
                         .WithMany()
                         .HasForeignKey("UnitId");
-
-                    b.Navigation("Category");
 
                     b.Navigation("Property");
 

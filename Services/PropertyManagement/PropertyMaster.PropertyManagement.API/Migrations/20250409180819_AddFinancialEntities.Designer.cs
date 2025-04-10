@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PropertyMaster.PropertyManagement.API;
 
@@ -11,9 +12,11 @@ using PropertyMaster.PropertyManagement.API;
 namespace PropertyMaster.PropertyManagement.API.Migrations
 {
     [DbContext(typeof(PropertyMasterApiContext))]
-    partial class PropertyMasterApiContextModelSnapshot : ModelSnapshot
+    [Migration("20250409180819_AddFinancialEntities")]
+    partial class AddFinancialEntities
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

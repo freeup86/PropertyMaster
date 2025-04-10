@@ -17,6 +17,7 @@ namespace PropertyMaster.PropertyManagement.API.Data
 
                 SeedUsers(context);
                 SeedCategories(context);
+                SeedFinancialCategories(context);
             }
 
             return host;
@@ -42,6 +43,112 @@ namespace PropertyMaster.PropertyManagement.API.Data
                 };
 
                 context.Users.Add(user);
+                context.SaveChanges();
+            }
+        }
+
+        private static void SeedFinancialCategories(PropertyMasterApiContext context)
+        {
+            if (!context.Categories.Any(c => c.Type == "Income" || c.Type == "Expense"))
+            {
+                var categories = new[]
+                {
+                    // Income categories
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Rent", 
+                        Type = "Income", 
+                        IsTaxDeductible = false,
+                        Description = "Rental income from tenants",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Other Income", 
+                        Type = "Income", 
+                        IsTaxDeductible = false,
+                        Description = "Other property-related income",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    
+                    // Expense categories
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Mortgage", 
+                        Type = "Expense", 
+                        IsTaxDeductible = true,
+                        Description = "Mortgage payments",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Property Tax", 
+                        Type = "Expense", 
+                        IsTaxDeductible = true,
+                        Description = "Property taxes",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Insurance", 
+                        Type = "Expense", 
+                        IsTaxDeductible = true,
+                        Description = "Property insurance",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Maintenance", 
+                        Type = "Expense", 
+                        IsTaxDeductible = true,
+                        Description = "Regular maintenance and repairs",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Utilities", 
+                        Type = "Expense", 
+                        IsTaxDeductible = true,
+                        Description = "Utility costs for the property",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Property Management", 
+                        Type = "Expense", 
+                        IsTaxDeductible = true,
+                        Description = "Property management fees",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    },
+                    new Category 
+                    { 
+                        Id = Guid.NewGuid(), 
+                        Name = "Vacancy", 
+                        Type = "Expense", 
+                        IsTaxDeductible = true,
+                        Description = "Vacancy losses",
+                        CreatedDate = DateTime.UtcNow,
+                        ModifiedDate = DateTime.UtcNow
+                    }
+                };
+
+                context.Categories.AddRange(categories);
                 context.SaveChanges();
             }
         }

@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Container, Typography, Paper, Box, Alert } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import PropertyForm from '../components/PropertyForm';
-import propertyService, { CreatePropertyRequest } from '../services/propertyService';
+import propertyService from '../services/propertyService';
 
 const AddProperty: React.FC = () => {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (values: CreatePropertyRequest) => {
+  const handleSubmit = async (values: any) => {
     try {
       await propertyService.createProperty(values);
       navigate('/properties');

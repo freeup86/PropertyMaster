@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Container, Typography, Paper, Box, Alert, CircularProgress } from '@mui/material';
 import { useNavigate, useParams } from 'react-router-dom';
 import PropertyForm from '../components/PropertyForm';
-import propertyService, { Property, UpdatePropertyRequest } from '../services/propertyService';
+import propertyService, { Property } from '../services/propertyService';
 
 const EditProperty: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,9 +28,10 @@ const EditProperty: React.FC = () => {
     fetchProperty();
   }, [id]);
 
-  const handleSubmit = async (values: UpdatePropertyRequest) => {
+  const handleSubmit = async (values: any) => {
     try {
       if (id) {
+        console.log("Submitting values to update property:", values); // Debug log
         await propertyService.updateProperty(id, values);
         navigate(`/properties/${id}`);
       }

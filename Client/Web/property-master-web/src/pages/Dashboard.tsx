@@ -1,5 +1,5 @@
 import React from 'react';
-import { Container, Typography, Grid, Paper, Box } from '@mui/material';
+import { Container, Typography, Paper, Box } from '@mui/material';
 
 const Dashboard: React.FC = () => {
   return (
@@ -7,8 +7,13 @@ const Dashboard: React.FC = () => {
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={8} lg={9}>
+      
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+        {/* Main chart area */}
+        <Box sx={{ 
+          flex: '1 1 auto', 
+          minWidth: { xs: '100%', md: '66%', lg: '75%' }
+        }}>
           <Paper
             sx={{
               p: 2,
@@ -24,8 +29,13 @@ const Dashboard: React.FC = () => {
               </Typography>
             </Box>
           </Paper>
-        </Grid>
-        <Grid item xs={12} md={4} lg={3}>
+        </Box>
+        
+        {/* Summary box */}
+        <Box sx={{ 
+          flex: '1 1 auto', 
+          minWidth: { xs: '100%', md: '30%', lg: '22%' } 
+        }}>
           <Paper
             sx={{
               p: 2,
@@ -41,8 +51,10 @@ const Dashboard: React.FC = () => {
               <Typography variant="body2">Total Value: $0</Typography>
             </Box>
           </Paper>
-        </Grid>
-        <Grid item xs={12}>
+        </Box>
+        
+        {/* Transactions section - full width */}
+        <Box sx={{ width: '100%' }}>
           <Paper sx={{ p: 2 }}>
             <Typography variant="h6" gutterBottom>
               Recent Transactions
@@ -51,8 +63,8 @@ const Dashboard: React.FC = () => {
               No recent transactions to display.
             </Typography>
           </Paper>
-        </Grid>
-      </Grid>
+        </Box>
+      </Box>
     </Container>
   );
 };

@@ -1,3 +1,4 @@
+// In UpdatePropertyDto.cs
 using System;
 using System.ComponentModel.DataAnnotations;
 using PropertyMaster.Models.Entities;
@@ -26,8 +27,12 @@ namespace PropertyMaster.Models.DTOs
         
         public PropertyType? Type { get; set; }
         
+        public decimal? AcquisitionPrice { get; set; }
+        
         public decimal? CurrentValue { get; set; }
         
         public DateTime? LastValuationDate { get; set; }
+
+        public DateTime? AcquisitionDate { get; set; }
     }
 }

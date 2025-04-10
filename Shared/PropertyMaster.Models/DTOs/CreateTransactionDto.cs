@@ -1,17 +1,10 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using PropertyMaster.Models.Entities;
 
-namespace PropertyMaster.Models.Entities
+namespace PropertyMaster.Models.DTOs
 {
-    public enum TransactionType
-    {
-        Income,
-        Expense,
-        Investment,
-        Transfer
-    }
-
-    public class Transaction : BaseEntity
+    public class CreateTransactionDto
     {
         [Required]
         public Guid PropertyId { get; set; }
@@ -21,8 +14,7 @@ namespace PropertyMaster.Models.Entities
         [Required]
         public Guid CategoryId { get; set; }
         
-        public Guid? AccountId { get; set; } = null;
-        public string AccountName { get; set; } = null;
+        public Guid? AccountId { get; set; }
         
         [Required]
         public TransactionType Type { get; set; }
@@ -49,21 +41,5 @@ namespace PropertyMaster.Models.Entities
         public bool IsPaid { get; set; }
         
         public DateTime? PaidDate { get; set; }
-
-        // Navigation properties
-        public virtual Property Property { get; set; }
-        public virtual Unit Unit { get; set; }
-        public virtual Category Category { get; set; }
-        //public virtual Account Account { get; set; }
-    }
-    
-    public enum RecurrencePattern
-    {
-        Daily,
-        Weekly,
-        Biweekly,
-        Monthly,
-        Quarterly,
-        Annually
     }
 }

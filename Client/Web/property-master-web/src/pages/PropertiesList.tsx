@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Typography, Button, Grid, Card, CardContent, CardActions, Box, CircularProgress } from '@mui/material';
+import { 
+  Container, 
+  Typography, 
+  Button, 
+  Card, 
+  CardContent, 
+  CardActions, 
+  Box, 
+  CircularProgress, 
+  Alert 
+} from '@mui/material';
 import { Add as AddIcon } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import propertyService, { Property } from '../services/propertyService';
@@ -82,60 +92,56 @@ const PropertiesList: React.FC = () => {
           </Button>
         </Box>
       ) : (
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
           {properties.map((property) => (
-            <Grid item xs={12} sm={6} md={4} key={property.id}>
-              <Card>
-                <CardContent>
-                  <Typography variant="h6" gutterBottom>
-                    {property.name}
-                  </Typography>
-                  <Typography variant="body2" color="textSecondary">
-                    {property.address}, {property.city}, {property.state} {property.zipCode}
-                  </Typography>
-                  <Box mt={2}>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <Typography variant="caption" color="textSecondary">
-                          Current Value
-                        </Typography>
-                        <Typography variant="body1">
-                          {formatCurrency(property.currentValue)}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={6}>
-                        <Typography variant="caption" color="textSecondary">
-                          Acquisition Price
-                        </Typography>
-                        <Typography variant="body1">
-                          {formatCurrency(property.acquisitionPrice)}
-                        </Typography>
-                      </Grid>
-                    </Grid>
+            <Card key={property.id} sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.33% - 16px)' }, display: 'flex', flexDirection: 'column' }}>
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" gutterBottom>
+                  {property.name}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                  {property.address}, {property.city}, {property.state} {property.zipCode}
+                </Typography>
+                <Box sx={{ display: 'flex', mb: 2 }}>
+                  <Box sx={{ width: '50%' }}>
+                    <Typography variant="caption" color="textSecondary">
+                      Current Value
+                    </Typography>
+                    <Typography variant="body1">
+                      {formatCurrency(property.currentValue)}
+                    </Typography>
                   </Box>
-                </CardContent>
-                <CardActions>
-                  <Button 
-                    size="small" 
-                    color="primary" 
-                    component={RouterLink} 
-                    to={`/properties/${property.id}`}
-                  >
-                    View Details
-                  </Button>
-                  <Button 
-                    size="small" 
-                    color="primary" 
-                    component={RouterLink} 
-                    to={`/properties/${property.id}/edit`}
-                  >
-                    Edit
-                  </Button>
-                </CardActions>
-              </Card>
-            </Grid>
+                  <Box sx={{ width: '50%' }}>
+                    <Typography variant="caption" color="textSecondary">
+                      Acquisition Price
+                    </Typography>
+                    <Typography variant="body1">
+                      {formatCurrency(property.acquisitionPrice)}
+                    </Typography>
+                  </Box>
+                </Box>
+              </CardContent>
+              <CardActions>
+                <Button 
+                  size="small" 
+                  color="primary" 
+                  component={RouterLink} 
+                  to={`/properties/${property.id}`}
+                >
+                  View Details
+                </Button>
+                <Button 
+                  size="small" 
+                  color="primary" 
+                  component={RouterLink} 
+                  to={`/properties/${property.id}/edit`}
+                >
+                  Edit
+                </Button>
+              </CardActions>
+            </Card>
           ))}
-        </Grid>
+        </Box>
       )}
     </Container>
   );

@@ -58,6 +58,7 @@ const propertyService = {
   },
 
   updateProperty: async (id: string, property: UpdatePropertyRequest): Promise<Property> => {
+    console.log("Sending update request with data:", property); // Debug log
     const response = await api.put(`/properties/${id}`, property);
     return response.data;
   },
