@@ -53,7 +53,7 @@ namespace PropertyMaster.Models.Entities
         public DateTime LastValuationDate { get; set; }
 
         // Navigation properties
-        public virtual User Owner { get; set; }
+        public virtual ApplicationUser Owner { get; set; }
         public virtual ICollection<Unit> Units { get; set; }
         public virtual ICollection<Transaction> Transactions { get; set; }
     }

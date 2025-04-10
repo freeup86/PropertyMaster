@@ -2,7 +2,6 @@ import React from 'react';
 import { 
   Box, 
   Typography, 
-  Grid, 
   Paper, 
   Chip,
   Tooltip
@@ -53,7 +52,14 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ performance }) 
     isCurrency?: boolean
   }) => (
     <Tooltip title={description} arrow>
-      <Paper sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <Paper sx={{ 
+        p: 2, 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        mb: 2, // Add margin bottom for spacing
+        width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(25% - 16px)' }
+      }}>
         <Box display="flex" alignItems="center" mb={1}>
           <Box sx={{ color }}>{icon}</Box>
           <Typography variant="subtitle2" color="textSecondary" ml={1}>
@@ -79,94 +85,83 @@ const PerformanceMetrics: React.FC<PerformanceMetricsProps> = ({ performance }) 
         />
       </Box>
 
-      <Grid container spacing={2}>
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Current Value" 
-            value={performance.currentValue} 
-            icon={<MoneyIcon />} 
-            description="Current estimated value of the property" 
-            isCurrency
-          />
-        </Grid>
+      <Box sx={{ 
+        display: 'flex', 
+        flexWrap: 'wrap', 
+        gap: 2, 
+        justifyContent: 'space-between' 
+      }}>
+        <MetricCard 
+          title="Current Value" 
+          value={performance.currentValue} 
+          icon={<MoneyIcon />} 
+          description="Current estimated value of the property" 
+          isCurrency
+        />
 
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Appreciation" 
-            value={performance.appreciationPercentage} 
-            icon={<TrendingUpIcon />} 
-            description="Total percentage increase in property value since purchase" 
-            color={performance.appreciationPercentage >= 0 ? 'success.main' : 'error.main'}
-            isPercentage
-          />
-        </Grid>
+        <MetricCard 
+          title="Appreciation" 
+          value={performance.appreciationPercentage} 
+          icon={<TrendingUpIcon />} 
+          description="Total percentage increase in property value since purchase" 
+          color={performance.appreciationPercentage >= 0 ? 'success.main' : 'error.main'}
+          isPercentage
+        />
 
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Cap Rate" 
-            value={performance.capRate} 
-            icon={<PercentIcon />} 
-            description="Net operating income as a percentage of property value" 
-            color={performance.capRate >= 5 ? 'success.main' : 'warning.main'}
-            isPercentage
-          />
-        </Grid>
+        <MetricCard 
+          title="Cap Rate" 
+          value={performance.capRate} 
+          icon={<PercentIcon />} 
+          description="Net operating income as a percentage of property value" 
+          color={performance.capRate >= 5 ? 'success.main' : 'warning.main'}
+          isPercentage
+        />
 
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Cash on Cash Return" 
-            value={performance.cashOnCashReturn} 
-            icon={<ChartIcon />} 
-            description="Annual cash flow as a percentage of total cash invested" 
-            color={performance.cashOnCashReturn >= 8 ? 'success.main' : 'warning.main'}
-            isPercentage
-          />
-        </Grid>
+        <MetricCard 
+          title="Cash on Cash Return" 
+          value={performance.cashOnCashReturn} 
+          icon={<ChartIcon />} 
+          description="Annual cash flow as a percentage of total cash invested" 
+          color={performance.cashOnCashReturn >= 8 ? 'success.main' : 'warning.main'}
+          isPercentage
+        />
 
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Annual Cash Flow" 
-            value={performance.annualCashFlow} 
-            icon={<MoneyIcon />} 
-            description="Yearly net income after all expenses" 
-            color={performance.annualCashFlow >= 0 ? 'success.main' : 'error.main'}
-            isCurrency
-          />
-        </Grid>
+        <MetricCard 
+          title="Annual Cash Flow" 
+          value={performance.annualCashFlow} 
+          icon={<MoneyIcon />} 
+          description="Yearly net income after all expenses" 
+          color={performance.annualCashFlow >= 0 ? 'success.main' : 'error.main'}
+          isCurrency
+        />
 
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Total Return" 
-            value={performance.annualizedReturn} 
-            icon={<TrendingUpIcon />} 
-            description="Annualized return including both cash flow and appreciation" 
-            color={performance.annualizedReturn >= 10 ? 'success.main' : 'warning.main'}
-            isPercentage
-          />
-        </Grid>
+        <MetricCard 
+          title="Total Return" 
+          value={performance.annualizedReturn} 
+          icon={<TrendingUpIcon />} 
+          description="Annualized return including both cash flow and appreciation" 
+          color={performance.annualizedReturn >= 10 ? 'success.main' : 'warning.main'}
+          isPercentage
+        />
 
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Expense Ratio" 
-            value={performance.expenseRatio} 
-            icon={<TrendingDownIcon />} 
-            description="Operating expenses as a percentage of income" 
-            color={performance.expenseRatio <= 50 ? 'success.main' : 'warning.main'}
-            isPercentage
-          />
-        </Grid>
+        <MetricCard 
+          title="Expense Ratio" 
+          value={performance.expenseRatio} 
+          icon={<TrendingDownIcon />} 
+          description="Operating expenses as a percentage of income" 
+          color={performance.expenseRatio <= 50 ? 'success.main' : 'warning.main'}
+          isPercentage
+        />
 
-        <Grid item xs={6} sm={4} md={3}>
-          <MetricCard 
-            title="Occupancy Rate" 
-            value={performance.occupancyRate} 
-            icon={<HomeIcon />} 
-            description="Percentage of units currently occupied" 
-            color={performance.occupancyRate >= 90 ? 'success.main' : 'warning.main'}
-            isPercentage
-          />
-        </Grid>
-      </Grid>
+        <MetricCard 
+          title="Occupancy Rate" 
+          value={performance.occupancyRate} 
+          icon={<HomeIcon />} 
+          description="Percentage of units currently occupied" 
+          color={performance.occupancyRate >= 90 ? 'success.main' : 'warning.main'}
+          isPercentage
+        />
+      </Box>
     </Box>
   );
 };

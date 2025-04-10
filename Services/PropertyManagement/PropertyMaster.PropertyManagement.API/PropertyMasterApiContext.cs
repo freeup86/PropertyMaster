@@ -1,5 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using PropertyMaster.Models.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
+using PropertyMaster.Models.Entities;
+using System;
+
 
 namespace PropertyMaster.PropertyManagement.API
 {
@@ -9,8 +15,6 @@ namespace PropertyMaster.PropertyManagement.API
             : base(options)
         {
         }
-
-        public DbSet<User> Users { get; set; }
         public DbSet<Property> Properties { get; set; }
         public DbSet<Unit> Units { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -20,6 +24,8 @@ namespace PropertyMaster.PropertyManagement.API
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             // Configure relationships
             modelBuilder.Entity<Property>()
                 .HasOne(p => p.Owner)

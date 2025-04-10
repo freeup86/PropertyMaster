@@ -9,8 +9,6 @@ namespace PropertyMaster.Data
             : base(options)
         {
         }
-
-        public DbSet<User> Users { get; set; }
         public DbSet<Property> Properties { get; set; }
         public DbSet<Unit> Units { get; set; }
         public DbSet<Transaction> Transactions { get; set; }

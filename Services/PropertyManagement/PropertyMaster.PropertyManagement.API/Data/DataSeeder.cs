@@ -25,26 +25,26 @@ namespace PropertyMaster.PropertyManagement.API.Data
 
         private static void SeedUsers(PropertyMasterApiContext context)
         {
-            if (!context.Users.Any(u => u.Id == Guid.Parse("00000000-0000-0000-0000-000000000001")))
-            {
-                var user = new User
-                {
-                    Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
-                    FirstName = "John",
-                    LastName = "Doe",
-                    Email = "john.doe@example.com",
-                    PhoneNumber = "555-123-4567",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    LastLoginDate = DateTime.UtcNow,
-                    IsActive = true,
-                    PreferredCurrency = "USD",
-                    TimeZone = "America/New_York"
-                };
+            //if (!context.Users.Any(u => u.Id == Guid.Parse("00000000-0000-0000-0000-000000000001")))
+            //{
+                //var user = new User
+                //{
+                    //Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    //FirstName = "John",
+                   //LastName = "Doe",
+                    //Email = "john.doe@example.com",
+                    //PhoneNumber = "555-123-4567",
+                   // CreatedDate = DateTime.UtcNow,
+                   // ModifiedDate = DateTime.UtcNow,
+                    //LastLoginDate = DateTime.UtcNow,
+                    ////IsActive = true,
+                    //PreferredCurrency = "USD",
+                    //TimeZone = "America/New_York"
+                //};
 
-                context.Users.Add(user);
-                context.SaveChanges();
-            }
+                //context.Users.Add(user);
+                //context.SaveChanges();
+            //}
         }
 
         private static void SeedFinancialCategories(PropertyMasterApiContext context)

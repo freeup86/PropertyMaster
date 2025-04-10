@@ -1,4 +1,3 @@
-// Create the TransactionForm.tsx file
 import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -6,12 +5,11 @@ import {
   TextField, 
   Button, 
   Box,
-  Grid,
+  Typography,
   MenuItem,
   FormControlLabel,
   Switch,
   InputAdornment,
-  Typography,
   FormControl,
   InputLabel,
   Select,
@@ -120,8 +118,15 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           {isEditing ? 'Edit Transaction' : 'Add New Transaction'}
         </Typography>
         
-        <Grid container spacing={2}>
-          <Grid item xs={12} sm={6}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: 2 
+        }}>
+          <Box sx={{ 
+            flex: '1 1 300px', 
+            minWidth: 250 
+          }}>
             <FormControl fullWidth>
               <InputLabel id="transaction-type-label">Transaction Type</InputLabel>
               <Select
@@ -136,9 +141,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <MenuItem value={TransactionType.Expense}>Expense</MenuItem>
               </Select>
             </FormControl>
-          </Grid>
+          </Box>
           
-          <Grid item xs={12} sm={6}>
+          <Box sx={{ 
+            flex: '1 1 300px', 
+            minWidth: 250 
+          }}>
             <FormControl fullWidth>
               <InputLabel id="category-label">Category</InputLabel>
               <Select
@@ -160,21 +168,34 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                   ))
                 )}
               </Select>
+              {formik.touched.categoryId && formik.errors.categoryId && (
+                <Typography color="error" variant="caption">
+                  {formik.errors.categoryId}
+                </Typography>
+              )}
             </FormControl>
-            {formik.touched.categoryId && formik.errors.categoryId && (
-              <Typography color="error" variant="caption">
-                {formik.errors.categoryId}
-              </Typography>
-            )}
-          </Grid>
+          </Box>
+        </Box>
 
-          <Grid item xs={12} sm={6}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: 2 
+        }}>
+          <Box sx={{ 
+            flex: '1 1 300px', 
+            minWidth: 250 
+          }}>
             <div className="date-picker-container">
               <label htmlFor="transaction-date">Date</label>
               <DatePicker
                 id="transaction-date"
                 selected={formik.values.date}
-                onChange={(date: Date) => formik.setFieldValue('date', date)}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    formik.setFieldValue('date', date);
+                  }
+                }}
                 className="form-control date-picker"
                 dateFormat="MMMM d, yyyy"
               />
@@ -182,9 +203,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
                 <div className="error-text">{formik.errors.date as string}</div>
               )}
             </div>
-          </Grid>
+          </Box>
           
-          <Grid item xs={12} sm={6}>
+          <Box sx={{ 
+            flex: '1 1 300px', 
+            minWidth: 250 
+          }}>
             <TextField
               fullWidth
               id="amount"
@@ -199,35 +223,40 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               error={formik.touched.amount && Boolean(formik.errors.amount)}
               helperText={formik.touched.amount && formik.errors.amount}
             />
-          </Grid>
-          
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              id="description"
-              name="description"
-              label="Description"
-              value={formik.values.description}
-              onChange={formik.handleChange}
-              error={formik.touched.description && Boolean(formik.errors.description)}
-              helperText={formik.touched.description && formik.errors.description}
-            />
-          </Grid>
-          
-          <Grid item xs={12}>
-            <TextField
-              fullWidth
-              id="notes"
-              name="notes"
-              label="Notes"
-              multiline
-              rows={3}
-              value={formik.values.notes}
-              onChange={formik.handleChange}
-            />
-          </Grid>
-          
-          <Grid item xs={12} sm={4}>
+          </Box>
+        </Box>
+        
+        <TextField
+          fullWidth
+          id="description"
+          name="description"
+          label="Description"
+          value={formik.values.description}
+          onChange={formik.handleChange}
+          error={formik.touched.description && Boolean(formik.errors.description)}
+          helperText={formik.touched.description && formik.errors.description}
+        />
+        
+        <TextField
+          fullWidth
+          id="notes"
+          name="notes"
+          label="Notes"
+          multiline
+          rows={3}
+          value={formik.values.notes}
+          onChange={formik.handleChange}
+        />
+        
+        <Box sx={{ 
+          display: 'flex', 
+          flexWrap: 'wrap', 
+          gap: 2 
+        }}>
+          <Box sx={{ 
+            flex: '1 1 200px', 
+            minWidth: 150 
+          }}>
             <FormControlLabel
               control={
                 <Switch
@@ -240,9 +269,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               }
               label="Tax Deductible"
             />
-          </Grid>
+          </Box>
           
-          <Grid item xs={12} sm={4}>
+          <Box sx={{ 
+            flex: '1 1 200px', 
+            minWidth: 150 
+          }}>
             <FormControlLabel
               control={
                 <Switch
@@ -255,9 +287,12 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               }
               label="Paid"
             />
-          </Grid>
+          </Box>
           
-          <Grid item xs={12} sm={4}>
+          <Box sx={{ 
+            flex: '1 1 200px', 
+            minWidth: 150 
+          }}>
             <FormControlLabel
               control={
                 <Switch
@@ -270,8 +305,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               }
               label="Recurring"
             />
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
         
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
           <Button

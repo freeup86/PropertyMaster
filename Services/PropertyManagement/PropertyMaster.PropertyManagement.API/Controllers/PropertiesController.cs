@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PropertyMaster.Models.DTOs;
 using PropertyMaster.PropertyManagement.API.Services.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims; 
 
 namespace PropertyMaster.PropertyManagement.API.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PropertiesController : ControllerBase
@@ -30,9 +33,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
         {
             try
             {
-                // For now, use a hardcoded user ID for testing
-                // In a real system, this would come from authenticated user
-                var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+                var userId = GetCurrentUserId();
                 var properties = await _propertyService.GetPropertiesByUserIdAsync(userId);
                 return Ok(properties);
             }
@@ -48,8 +49,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
         {
             try
             {
-                // For now, use a hardcoded user ID for testing
-                var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+                var userId = GetCurrentUserId();
                 var property = await _propertyService.GetPropertyByIdAsync(id, userId);
                 
                 if (property == null)
@@ -69,8 +69,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
         {
             try
             {
-                // For now, use a hardcoded user ID for testing
-                var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+                var userId = GetCurrentUserId();
                 var property = await _propertyService.CreatePropertyAsync(propertyDto, userId);
                 
                 return CreatedAtAction(nameof(GetProperty), new { id = property.Id }, property);
@@ -87,8 +86,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
         {
             try
             {
-                // For now, use a hardcoded user ID for testing
-                var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+                var userId = GetCurrentUserId();
                 var property = await _propertyService.UpdatePropertyAsync(id, propertyDto, userId);
                 
                 if (property == null)
@@ -108,8 +106,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
         {
             try
             {
-                // For now, use a hardcoded user ID for testing
-                var userId = Guid.Parse("00000000-0000-0000-0000-000000000001");
+                var userId = GetCurrentUserId();
                 var result = await _propertyService.DeletePropertyAsync(id, userId);
                 
                 if (!result)
@@ -122,6 +119,24 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                 _logger.LogError(ex, "Error deleting property with ID {PropertyId}", id);
                 return StatusCode(500, "An error occurred while deleting the property");
             }
+        }
+
+        private Guid GetCurrentUserId()
+        {
+            // Retrieve the User ID claim, which was added during token generation in AuthController
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out Guid userId))
+            {
+                // This should ideally not happen if the [Authorize] attribute is working correctly
+                // and the token was generated properly, but good to handle defensively.
+                _logger.LogError("User ID claim (NameIdentifier) is missing or invalid in the token.");
+                // Throwing an exception might be too harsh, depending on requirements.
+                // Returning Guid.Empty or throwing might be options.
+                // For now, we throw to indicate a serious issue with auth context.
+                throw new InvalidOperationException("User ID not found or invalid in token claims.");
+            }
+            return userId;
         }
     }
 }

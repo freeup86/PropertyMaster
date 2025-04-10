@@ -9,7 +9,6 @@ import {
   Alert,
   Button,
   TextField,
-  Grid
 } from '@mui/material';
 import dayjs from 'dayjs';
 import DatePicker from 'react-datepicker';
@@ -168,32 +167,48 @@ const PropertyFinancialDashboard: React.FC<PropertyFinancialDashboardProps> = ({
           Financial Dashboard
         </Typography>
         
-        <Grid container spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <Grid item xs={12} sm={4}>
-          <div className="date-picker-container">
-            <label htmlFor="start-date">Start Date</label>
-            <DatePicker
-              id="start-date"
-              selected={startDate}
-              onChange={(date: Date) => setStartDate(date)}
-              className="form-control date-picker"
-              dateFormat="MMMM d, yyyy"
-            />
-          </div>
-        </Grid>
-        <Grid item xs={12} sm={4}>
-          <div className="date-picker-container">
-            <label htmlFor="end-date">End Date</label>
-            <DatePicker
-              id="end-date"
-              selected={endDate}
-              onChange={(date: Date) => setEndDate(date)}
-              className="form-control date-picker"
-              dateFormat="MMMM d, yyyy"
-            />
-          </div>
-        </Grid>
-          <Grid item xs={12} sm={4}>
+        <Box 
+          sx={{ 
+            display: 'flex', 
+            flexWrap: 'wrap', 
+            gap: 2, 
+            alignItems: 'center', 
+            mb: 2 
+          }}
+        >
+          <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
+            <div className="date-picker-container">
+              <label htmlFor="start-date">Start Date</label>
+              <DatePicker
+                id="start-date"
+                selected={startDate}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    setStartDate(date);
+                  }
+                }}
+                className="form-control date-picker"
+                dateFormat="MMMM d, yyyy"
+              />
+            </div>
+          </Box>
+          <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
+            <div className="date-picker-container">
+              <label htmlFor="end-date">End Date</label>
+              <DatePicker
+                id="end-date"
+                selected={endDate}
+                onChange={(date: Date | null) => {
+                  if (date) {
+                    setEndDate(date);
+                  }
+                }}
+                className="form-control date-picker"
+                dateFormat="MMMM d, yyyy"
+              />
+            </div>
+          </Box>
+          <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
             <Button 
               variant="contained" 
               onClick={handleDateRangeChange}
@@ -201,8 +216,8 @@ const PropertyFinancialDashboard: React.FC<PropertyFinancialDashboardProps> = ({
             >
               Apply Date Range
             </Button>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
 
         {propertyPerformance && (
           <PerformanceMetrics performance={propertyPerformance} />
@@ -226,42 +241,56 @@ const PropertyFinancialDashboard: React.FC<PropertyFinancialDashboardProps> = ({
           )}
           
           {financialReport && (
-            <Box mt={3}>
-              <Grid container spacing={3}>
-                <Grid item xs={12} sm={4}>
-                  <Paper sx={{ p: 2, textAlign: 'center', height: '100%' }}>
-                    <Typography variant="subtitle2" color="textSecondary">
-                      Total Income
-                    </Typography>
-                    <Typography variant="h5" color="success.main">
-                      {formatCurrency(financialReport.totalIncome)}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Paper sx={{ p: 2, textAlign: 'center', height: '100%' }}>
-                    <Typography variant="subtitle2" color="textSecondary">
-                      Total Expenses
-                    </Typography>
-                    <Typography variant="h5" color="error.main">
-                      {formatCurrency(financialReport.totalExpenses)}
-                    </Typography>
-                  </Paper>
-                </Grid>
-                <Grid item xs={12} sm={4}>
-                  <Paper sx={{ p: 2, textAlign: 'center', height: '100%' }}>
-                    <Typography variant="subtitle2" color="textSecondary">
-                      Net Operating Income
-                    </Typography>
-                    <Typography 
-                      variant="h5" 
-                      color={financialReport.netOperatingIncome >= 0 ? 'success.main' : 'error.main'}
-                    >
-                      {formatCurrency(financialReport.netOperatingIncome)}
-                    </Typography>
-                  </Paper>
-                </Grid>
-              </Grid>
+            <Box 
+              sx={{ 
+                display: 'flex', 
+                flexWrap: 'wrap', 
+                gap: 2, 
+                mt: 3 
+              }}
+            >
+              <Paper sx={{ 
+                flex: '1 1 200px', 
+                p: 2, 
+                textAlign: 'center', 
+                minWidth: 200 
+              }}>
+                <Typography variant="subtitle2" color="textSecondary">
+                  Total Income
+                </Typography>
+                <Typography variant="h5" color="success.main">
+                  {formatCurrency(financialReport.totalIncome)}
+                </Typography>
+              </Paper>
+              <Paper sx={{ 
+                flex: '1 1 200px', 
+                p: 2, 
+                textAlign: 'center', 
+                minWidth: 200 
+              }}>
+                <Typography variant="subtitle2" color="textSecondary">
+                  Total Expenses
+                </Typography>
+                <Typography variant="h5" color="error.main">
+                  {formatCurrency(financialReport.totalExpenses)}
+                </Typography>
+              </Paper>
+              <Paper sx={{ 
+                flex: '1 1 200px', 
+                p: 2, 
+                textAlign: 'center', 
+                minWidth: 200 
+              }}>
+                <Typography variant="subtitle2" color="textSecondary">
+                  Net Operating Income
+                </Typography>
+                <Typography 
+                  variant="h5" 
+                  color={financialReport.netOperatingIncome >= 0 ? 'success.main' : 'error.main'}
+                >
+                  {formatCurrency(financialReport.netOperatingIncome)}
+                </Typography>
+              </Paper>
             </Box>
           )}
         </TabPanel>
@@ -280,32 +309,39 @@ const PropertyFinancialDashboard: React.FC<PropertyFinancialDashboardProps> = ({
               </Typography>
               {recentTransactions.map((transaction) => (
                 <Paper key={transaction.id} sx={{ p: 2, mb: 2 }}>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} md={3}>
+                  <Box 
+                    sx={{ 
+                      display: 'flex', 
+                      flexWrap: 'wrap', 
+                      gap: 2, 
+                      alignItems: 'center' 
+                    }}
+                  >
+                    <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
                       <Typography variant="subtitle2" color="textSecondary">
                         Date
                       </Typography>
                       <Typography>
                         {formatDate(transaction.date)}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={3}>
+                    </Box>
+                    <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
                       <Typography variant="subtitle2" color="textSecondary">
                         Category
                       </Typography>
                       <Typography>
                         {transaction.categoryName}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={4}>
+                    </Box>
+                    <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
                       <Typography variant="subtitle2" color="textSecondary">
                         Description
                       </Typography>
                       <Typography>
                         {transaction.description || 'No description'}
                       </Typography>
-                    </Grid>
-                    <Grid item xs={12} md={2}>
+                    </Box>
+                    <Box sx={{ flex: '1 1 200px', minWidth: 200 }}>
                       <Typography variant="subtitle2" color="textSecondary">
                         Amount
                       </Typography>
@@ -315,8 +351,8 @@ const PropertyFinancialDashboard: React.FC<PropertyFinancialDashboardProps> = ({
                       >
                         {transaction.type === 0 ? '+' : '-'} {formatCurrency(transaction.amount)}
                       </Typography>
-                    </Grid>
-                  </Grid>
+                    </Box>
+                  </Box>
                 </Paper>
               ))}
             </Box>
