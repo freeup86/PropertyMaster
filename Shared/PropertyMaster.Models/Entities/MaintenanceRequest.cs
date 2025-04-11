@@ -39,9 +39,10 @@ namespace PropertyMaster.Models.Entities
         [MaxLength(50)]
         public string Priority { get; set; }
 
+        // These fields can be NULL
         [MaxLength(255)]
-        public string AssignedTo { get; set; }
+        public string? AssignedTo { get; set; }
 
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
     }
 }

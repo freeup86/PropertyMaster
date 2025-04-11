@@ -1,18 +1,26 @@
-// src/components/NavigationBar.tsx
-import React, { useState, useEffect } from 'react';
-import { AppBar, Toolbar, Typography, Button, Box } from '@mui/material';
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  AppBar, 
+  Toolbar, 
+  Typography, 
+  Button, 
+  Box, 
+  Popper, 
+  Paper, 
+  ClickAwayListener,
+  MenuList,
+  MenuItem
+} from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
-// Import authService and the UserInfo type
-import { authService, UserInfo } from '../services/authService'; // Adjust path if needed
+import { authService, UserInfo } from '../services/authService';
 
 const NavigationBar: React.FC = () => {
   const navigate = useNavigate();
-  // State to track if user is logged in
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  // State to hold user info if logged in
   const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const maintenanceButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Check authentication status when the component mounts
   useEffect(() => {
     const token = authService.getToken();
     if (token) {
@@ -22,65 +30,123 @@ const NavigationBar: React.FC = () => {
       setIsAuthenticated(false);
       setCurrentUser(null);
     }
-    // No dependencies needed if we only check on mount
-    // If you need this to update dynamically without refresh (e.g., after login),
-    // you might need a global state/context.
   }, []);
 
-  // Handle logout action
+  const handleMouseEnter = () => {
+    if (maintenanceButtonRef.current) {
+      setAnchorEl(maintenanceButtonRef.current);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setTimeout(() => {
+      setAnchorEl(null);
+    }, 200);
+  };
+
+  const handleMenuMouseEnter = () => {
+    // Prevent the menu from closing
+    if (anchorEl) {
+      clearTimeout(window as any);
+    }
+  };
+
+  const handleMenuItemClick = (path: string) => {
+    navigate(path);
+    setAnchorEl(null);
+  };
+
   const handleLogout = () => {
-    authService.logout(); // Clear token from storage
-    setIsAuthenticated(false); // Update state
-    setCurrentUser(null); // Update state
-    navigate('/login'); // Redirect to login page
-    // Optionally force a reload if state isn't updating everywhere:
-    // window.location.reload();
+    authService.logout();
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    navigate('/login');
   };
 
   return (
     <AppBar position="static">
       <Toolbar>
         <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-          {/* Link title back to dashboard if desired */}
           <RouterLink to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-             Property Master
+            Property Master
           </RouterLink>
         </Typography>
 
-        {/* Conditionally render navigation items */}
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {isAuthenticated ? (
-            // --- Show if user IS logged in ---
             <>
-              {/* Keep existing links for logged-in users */}
               <Button color="inherit" component={RouterLink} to="/dashboard">
                 Dashboard
               </Button>
               <Button color="inherit" component={RouterLink} to="/properties">
                 Properties
               </Button>
-              {/* Add other links for logged-in users */}
+              
+              {/* Maintenance Dropdown */}
+              <div 
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
+                style={{ position: 'relative' }}
+              >
+                <Button 
+                  ref={maintenanceButtonRef}
+                  color="inherit"
+                  aria-haspopup="true"
+                  aria-expanded={Boolean(anchorEl)}
+                >
+                  Maintenance
+                </Button>
+                <Popper
+                  open={Boolean(anchorEl)}
+                  anchorEl={anchorEl}
+                  placement="bottom-start"
+                  sx={{ 
+                    zIndex: (theme) => theme.zIndex.modal,
+                    marginTop: '8px' // Slight spacing from the button
+                  }}
+                >
+                  <Paper 
+                    onMouseEnter={handleMenuMouseEnter}
+                    onMouseLeave={handleMouseLeave}
+                  >
+                    <ClickAwayListener onClickAway={() => setAnchorEl(null)}>
+                      <MenuList>
+                        <MenuItem 
+                          onClick={() => handleMenuItemClick('/maintenance-requests')}
+                        >
+                          View Requests
+                        </MenuItem>
+                        <MenuItem 
+                          onClick={() => handleMenuItemClick('/maintenance-requests/create')}
+                        >
+                          Create Request
+                        </MenuItem>
+                        <MenuItem component={RouterLink} to="/settings/notifications">
+                          <ListItemIcon>
+                              <NotificationsIcon fontSize="small" />
+                          </ListItemIcon>
+                          <ListItemText>Notification Settings</ListItemText>
+                      </MenuItem>
+                      </MenuList>
+                    </ClickAwayListener>
+                  </Paper>
+                </Popper>
+              </div>
 
-              {/* Display Welcome message */}
               {currentUser && (
-                <Typography sx={{ mx: 2 }}> {/* Add some margin */}
-                   Welcome, {currentUser.firstName}!
+                <Typography sx={{ mx: 2 }}>
+                  Welcome, {currentUser.firstName}!
                 </Typography>
               )}
-
-              {/* Logout Button */}
               <Button color="inherit" onClick={handleLogout}>
                 Logout
               </Button>
             </>
           ) : (
-            // --- Show if user IS NOT logged in ---
             <>
-              {/* Login Button */}
               <Button color="inherit" component={RouterLink} to="/login">
                 Login
               </Button>
-              {/* Register Button */}
               <Button color="inherit" component={RouterLink} to="/register">
                 Register
               </Button>

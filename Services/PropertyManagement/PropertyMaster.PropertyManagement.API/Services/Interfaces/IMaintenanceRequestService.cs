@@ -13,5 +13,6 @@ using System;
           Task<MaintenanceRequestDto> CreateMaintenanceRequestAsync(CreateMaintenanceRequestDto requestDto);
           Task<MaintenanceRequestDto> UpdateMaintenanceRequestAsync(Guid id, UpdateMaintenanceRequestDto requestDto);
           Task<bool> DeleteMaintenanceRequestAsync(Guid id);
+          Task<IEnumerable<MaintenanceRequestDto>> GetAllMaintenanceRequestsAsync();
       }
   }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import MaintenanceRequestService from '../services/maintenanceRequestService';
-import { MaintenanceRequestDto, UpdateMaintenanceRequestDto } from '../../../../../Shared/PropertyMaster.Models/DTOs'; // Corrected import path
+import { MaintenanceRequestDto, UpdateMaintenanceRequestDto } from '../types/MaintenanceRequestTypes';
 import { useParams, useNavigate } from 'react-router-dom';
 
 const MaintenanceRequestDetails: React.FC = () => {

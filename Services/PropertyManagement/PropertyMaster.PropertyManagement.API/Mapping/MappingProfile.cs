@@ -51,12 +51,14 @@ namespace PropertyMaster.PropertyManagement.API.Mapping
 
             // Maintenance Request mapping
             CreateMap<MaintenanceRequest, MaintenanceRequestDto>()
-                  .ForMember(dest => dest.UnitNumber, opt => opt.MapFrom(src => src.Unit.UnitNumber))
-                  .ForMember(dest => dest.TenantName, opt => opt.MapFrom(src => $"{src.Tenant.FirstName} {src.Tenant.LastName}"))
-                  .ForMember(dest => dest.PropertyName, opt => opt.MapFrom(src => src.Property.Name))
+                .ForMember(dest => dest.UnitNumber, opt => opt.MapFrom(src => src.Unit != null ? src.Unit.UnitNumber : string.Empty))
+                .ForMember(dest => dest.TenantName, opt => opt.MapFrom(src => src.Tenant != null ? $"{src.Tenant.FirstName} {src.Tenant.LastName}" : string.Empty))
+                .ForMember(dest => dest.PropertyName, opt => opt.MapFrom(src => src.Property != null ? src.Property.Name : string.Empty))
+                .ForMember(dest => dest.AssignedTo, opt => opt.MapFrom(src => src.AssignedTo ?? string.Empty))
+                .ForMember(dest => dest.Notes, opt => opt.MapFrom(src => src.Notes ?? string.Empty))
                   .ReverseMap();
-              CreateMap<CreateMaintenanceRequestDto, MaintenanceRequest>();
-              CreateMap<UpdateMaintenanceRequestDto, MaintenanceRequest>();
+            CreateMap<CreateMaintenanceRequestDto, MaintenanceRequest>();
+            CreateMap<UpdateMaintenanceRequestDto, MaintenanceRequest>();
         }
     }
 }

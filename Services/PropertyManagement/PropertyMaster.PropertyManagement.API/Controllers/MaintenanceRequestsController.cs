@@ -121,5 +121,20 @@ using System;
                   return StatusCode(500, "An error occurred while deleting the maintenance request");
               }
           }
+
+          [HttpGet]
+        public async Task<ActionResult<IEnumerable<MaintenanceRequestDto>>> GetAllRequests()
+        {
+            try
+            {
+                var requests = await _requestService.GetAllMaintenanceRequestsAsync();
+                return Ok(requests);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving all maintenance requests");
+                return StatusCode(500, "An error occurred while retrieving maintenance requests");
+            }
+        }
       }
   }

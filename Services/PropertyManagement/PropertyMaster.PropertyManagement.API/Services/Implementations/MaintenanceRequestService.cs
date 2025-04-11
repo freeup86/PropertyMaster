@@ -112,5 +112,25 @@ using System;
 
               return true;
           }
+
+          public async Task<IEnumerable<MaintenanceRequestDto>> GetAllMaintenanceRequestsAsync()
+          {
+                try
+                {
+                    var requests = await _context.MaintenanceRequests
+                        .Include(r => r.Unit)
+                        .Include(r => r.Tenant)
+                        .Include(r => r.Property)
+                        .ToListAsync();
+
+                    return _mapper.Map<IEnumerable<MaintenanceRequestDto>>(requests);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error retrieving maintenance requests");
+                    // Return an empty list instead of propagating the exception
+                    return new List<MaintenanceRequestDto>();
+                }
+          }
       }
   }
