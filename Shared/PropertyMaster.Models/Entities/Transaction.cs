@@ -50,6 +50,12 @@ namespace PropertyMaster.Models.Entities
         
         public DateTime? PaidDate { get; set; }
 
+        [Required]
+        public string TransactionCategory { get; set; } // e.g., "Rent", "Mortgage", "Utilities"
+
+        [Required]
+        public string SubCategory { get; set; } // e.g., "Electricity", "Water", "Gas" (for Utilities)
+
         // Navigation properties
         public virtual Property Property { get; set; }
         public virtual Unit Unit { get; set; }

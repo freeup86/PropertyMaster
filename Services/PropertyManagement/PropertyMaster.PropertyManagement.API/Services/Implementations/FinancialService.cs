@@ -466,6 +466,9 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
                        ((decimal)units.Count(u => u.IsOccupied) / units.Count) * 100 : 100;
                }
 
+               decimal averageAnnualReturn = totalReturn / (decimal)yearsOwned;
+               decimal roi = totalCashInvested != 0 ? (averageAnnualReturn / totalCashInvested) * 100 : 0;
+
                return new PropertyPerformanceDto
                {
                    PropertyId = propertyId,
@@ -600,6 +603,34 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
                        return type;
                }
            }
+
+           public async Task<IEnumerable<FinancialReportDto>> GetGeneralFinancialReportAsync(Guid userId)
+           {
+                // Logic to fetch and aggregate financial reports across all properties for the user
+                // Example:
+                var properties = await _context.Properties.Where(p => p.OwnerId == userId).ToListAsync();
+                var reports = new List<FinancialReportDto>();
+                foreach (var property in properties)
+                {
+                    var report = await GetFinancialReportAsync(property.Id, DateTime.UtcNow.AddYears(-1), DateTime.UtcNow); // Or your desired date range
+                    reports.Add(report);
+                }
+                return reports; // Or you might need to further aggregate this data
+            }
+
+            public async Task<IEnumerable<PropertyPerformanceDto>> GetGeneralPortfolioPerformanceAsync(Guid userId)
+            {
+                // Logic to fetch and aggregate performance metrics across all properties
+                // Example:
+                var properties = await _context.Properties.Where(p => p.OwnerId == userId).ToListAsync();
+                var performanceMetrics = new List<PropertyPerformanceDto>();
+                foreach (var property in properties)
+                {
+                    var performance = await GetPropertyPerformanceAsync(property.Id);
+                    performanceMetrics.Add(performance);
+                }
+                return performanceMetrics; // Or you might need to further aggregate/average this data
+            }
 
            #endregion
        }

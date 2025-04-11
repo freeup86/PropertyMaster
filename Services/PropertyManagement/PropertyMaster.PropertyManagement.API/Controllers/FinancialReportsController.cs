@@ -91,5 +91,35 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                 return StatusCode(500, "An error occurred while retrieving portfolio performance metrics");
             }
         }
+
+        [HttpGet("reports/general/{userId}")] // Assuming you need userId
+        public async Task<ActionResult<IEnumerable<FinancialReportDto>>> GetGeneralFinancialReport(Guid userId)
+        {
+            try
+            {
+                var reports = await _financialService.GetGeneralFinancialReportAsync(userId); // New service method
+                return Ok(reports);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating general financial report for user {UserId}", userId);
+                return StatusCode(500, "An error occurred while generating the general financial report");
+            }
+        }
+
+        [HttpGet("performance/general/{userId}")] // Assuming you need userId
+        public async Task<ActionResult<IEnumerable<PropertyPerformanceDto>>> GetGeneralPropertyPerformance(Guid userId)
+        {
+            try
+            {
+                var performance = await _financialService.GetGeneralPortfolioPerformanceAsync(userId); // New service method
+                return Ok(performance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving general performance metrics for user {UserId}", userId);
+                return StatusCode(500, "An error occurred while retrieving general performance metrics");
+            }
+        }
     }
 }

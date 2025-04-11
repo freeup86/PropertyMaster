@@ -41,5 +41,11 @@ namespace PropertyMaster.Models.DTOs
         public bool IsPaid { get; set; }
         
         public DateTime? PaidDate { get; set; }
+
+        [Required]
+        public string TransactionCategory { get; set; }
+
+        [Required]
+        public string SubCategory { get; set; }
     }
 }

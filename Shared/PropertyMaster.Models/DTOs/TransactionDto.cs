@@ -26,5 +26,7 @@ namespace PropertyMaster.Models.DTOs
         public bool IsTaxDeductible { get; set; }
         public bool IsPaid { get; set; }
         public DateTime? PaidDate { get; set; }
+        public string TransactionCategory { get; set; }
+        public string SubCategory { get; set; }
     }
 }

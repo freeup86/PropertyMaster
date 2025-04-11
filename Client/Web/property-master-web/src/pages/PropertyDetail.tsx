@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import PropertyFinancialDashboard from '../components/financial/PropertyFinancialDashboard';
 import TransactionManager from '../components/financial/TransactionManager';
+import DocumentManager from '../components/documents/DocumentManager';
 
 import { 
   Container, 
@@ -257,6 +258,7 @@ const PropertyDetail: React.FC = () => {
                 <Tab label="Tenants" id="property-tab-1" aria-controls="property-tabpanel-1" />
                 <Tab label="Financials" id="property-tab-2" aria-controls="property-tabpanel-2" />
                 <Tab label="Transactions" id="property-tab-3" aria-controls="property-tabpanel-3" />
+                <Tab label="Documents" id="property-tab-4" aria-controls="property-tabpanel-4" />
               </Tabs>
             </Box>
             <TabPanel value={tabValue} index={0}>
@@ -270,6 +272,9 @@ const PropertyDetail: React.FC = () => {
             </TabPanel>
             <TabPanel value={tabValue} index={3}>
               <TransactionManager propertyId={property.id} />
+            </TabPanel>
+            <TabPanel value={tabValue} index={4}>
+              <DocumentManager propertyId={property.id} />
             </TabPanel>
           </Paper>
 

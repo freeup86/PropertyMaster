@@ -14,10 +14,11 @@ namespace PropertyMaster.PropertyManagement.API.Services.Interfaces
         Task<TransactionDto> CreateTransactionAsync(CreateTransactionDto transactionDto);
         Task<TransactionDto> UpdateTransactionAsync(Guid transactionId, UpdateTransactionDto transactionDto);
         Task<bool> DeleteTransactionAsync(Guid transactionId);
-        
         Task<FinancialReportDto> GetFinancialReportAsync(Guid propertyId, DateTime startDate, DateTime endDate);
         Task<CashFlowReportDto> GetCashFlowReportAsync(Guid propertyId, DateTime? date = null);
         Task<PropertyPerformanceDto> GetPropertyPerformanceAsync(Guid propertyId);
         Task<IEnumerable<PropertyPerformanceDto>> GetPortfolioPerformanceAsync(Guid userId);
+        Task<IEnumerable<FinancialReportDto>> GetGeneralFinancialReportAsync(Guid userId);
+        Task<IEnumerable<PropertyPerformanceDto>> GetGeneralPortfolioPerformanceAsync(Guid userId);
     }
 }

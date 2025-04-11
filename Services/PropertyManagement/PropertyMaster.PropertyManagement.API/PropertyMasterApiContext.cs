@@ -21,6 +21,9 @@ namespace PropertyMaster.PropertyManagement.API
         public DbSet<Category> Categories { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<Document> Documents { get; set; }
+        public DbSet<MaintenanceRequest> MaintenanceRequests { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -44,6 +47,24 @@ namespace PropertyMaster.PropertyManagement.API
                 .WithMany(p => p.Transactions)
                 .HasForeignKey(t => t.PropertyId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.Property)
+                .WithMany()
+                .HasForeignKey(d => d.PropertyId)
+                .OnDelete(DeleteBehavior.Restrict); // Already using Restrict, which is correct
+                
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.Unit)
+                .WithMany()
+                .HasForeignKey(d => d.UnitId)
+                .OnDelete(DeleteBehavior.NoAction); // Change from SetNull to NoAction
+                
+            modelBuilder.Entity<Document>()
+                .HasOne(d => d.Tenant)
+                .WithMany()
+                .HasForeignKey(d => d.TenantId)
+                .OnDelete(DeleteBehavior.NoAction);
 
             base.OnModelCreating(modelBuilder);
         }

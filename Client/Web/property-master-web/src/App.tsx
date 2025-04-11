@@ -1,25 +1,22 @@
 import React from 'react';
-// Make sure BrowserRouter is imported as Router if you prefer that alias, or just use BrowserRouter
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CssBaseline, Box } from '@mui/material';
 import ForgotPasswordForm from './components/Auth/ForgotPasswordForm';
 import ResetPasswordForm from './components/Auth/ResetPasswordForm'; 
 
-// Your existing components/pages
 import NavigationBar from './components/NavigationBar';
-import Dashboard from './pages/Dashboard';
 import PropertiesList from './pages/PropertiesList';
 import PropertyDetail from './pages/PropertyDetail';
 import AddProperty from './pages/AddProperty';
 import EditProperty from './pages/EditProperty';
 import TenantDetail from './pages/TenantDetail';
+import FinancialDashboard from './components/dashboards/FinancialDashboard';
+import Dashboard from './pages/Dashboard';
 
-// --- Add Imports for Auth Components ---
+// --- Imports for Auth Components ---
 import ProtectedRoute from './components/Auth/ProtectedRoute'; // Adjust path if needed
 import LoginForm from './components/Auth/LoginForm';       // Adjust path if needed
 import RegisterForm from './components/Auth/RegisterForm'; // Adjust path if needed
-// Optional: Add a public HomePage component if '/' shouldn't always be Dashboard
-// import HomePage from './pages/HomePage';
 
 const App: React.FC = () => {
   return (
@@ -46,8 +43,8 @@ const App: React.FC = () => {
             <Route element={<ProtectedRoute />}>
               {/* Your existing routes are now protected */}
               {/* Consider if '/' should truly be protected or redirect */}
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} /> {/* Explicit dashboard route */}
+              <Route path="/" element={<Dashboard />} /> 
+              <Route path="/dashboard" element={<FinancialDashboard />} />
               <Route path="/properties" element={<PropertiesList />} />
               <Route path="/properties/new" element={<AddProperty />} />
               <Route path="/properties/:id" element={<PropertyDetail />} />
