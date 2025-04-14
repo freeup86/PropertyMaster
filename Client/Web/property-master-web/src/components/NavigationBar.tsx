@@ -9,9 +9,15 @@ import {
   Paper, 
   ClickAwayListener,
   MenuList,
-  MenuItem
+  MenuItem,
+  ListItemIcon,
+  ListItemText
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { 
+  Link as RouterLink, 
+  useNavigate 
+} from 'react-router-dom';
+import { Notifications as NotificationsIcon } from '@mui/icons-material';
 import { authService, UserInfo } from '../services/authService';
 
 const NavigationBar: React.FC = () => {
@@ -81,7 +87,9 @@ const NavigationBar: React.FC = () => {
               <Button color="inherit" component={RouterLink} to="/properties">
                 Properties
               </Button>
-              
+              <Button color="inherit" component={RouterLink} to="/calendar">
+                Calendar
+              </Button>
               {/* Maintenance Dropdown */}
               <div 
                 onMouseEnter={handleMouseEnter}

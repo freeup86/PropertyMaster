@@ -59,6 +59,10 @@ namespace PropertyMaster.PropertyManagement.API.Mapping
                   .ReverseMap();
             CreateMap<CreateMaintenanceRequestDto, MaintenanceRequest>();
             CreateMap<UpdateMaintenanceRequestDto, MaintenanceRequest>();
+
+            // Add User mapping
+            CreateMap<ApplicationUser, UserDto>()
+                .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
         }
     }
 }

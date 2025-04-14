@@ -4,7 +4,6 @@ import React from 'react';
  import ForgotPasswordForm from './components/Auth/ForgotPasswordForm';
  import ResetPasswordForm from './components/Auth/ResetPasswordForm';
  
-
  import NavigationBar from './components/NavigationBar';
  import PropertiesList from './pages/PropertiesList';
  import PropertyDetail from './pages/PropertyDetail';
@@ -14,17 +13,17 @@ import React from 'react';
  import FinancialDashboard from './components/dashboards/FinancialDashboard';
  import Dashboard from './pages/Dashboard';
  
-
  // --- Imports for Auth Components ---
  import ProtectedRoute from './components/Auth/ProtectedRoute';
  import LoginForm from './components/Auth/LoginForm';
  import RegisterForm from './components/Auth/RegisterForm';
+ import { CalendarView } from './components/calendar/CalendarView';
  
-
  // --- Import Maintenance Request Components ---
  import MaintenanceRequestList from './components/MaintenanceRequestList'; // Adjust path
  import CreateMaintenanceRequest from './components/CreateMaintenanceRequest'; // Adjust path
  import MaintenanceRequestDetails from './components/MaintenanceRequestDetails'; // Adjust path
+import NotificationSettings from './components/settings/NotificationSettings';
  
 
  const App: React.FC = () => {
@@ -59,12 +58,13 @@ import React from 'react';
               <Route path="/properties/:id" element={<PropertyDetail />} />
               <Route path="/properties/:id/edit" element={<EditProperty />} />
               <Route path="/tenants/:id" element={<TenantDetail />} />
-              <Route path="/settings/notifications" element={<NotificationSettings />} />
+              <Route path="/settings/notifications" element={<NotificationSettings/>} />
  
               {/* --- Maintenance Request Routes --- */}
               <Route path="/maintenance-requests" element={<MaintenanceRequestList />} />
               <Route path="/maintenance-requests/create" element={<CreateMaintenanceRequest />} />
               <Route path="/maintenance-requests/:id" element={<MaintenanceRequestDetails />} />
+              <Route path="/calendar" element={<CalendarView />} />
             </Route>
  
 

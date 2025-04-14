@@ -16,6 +16,7 @@ using PropertyMaster.PropertyManagement.API;
 using System;
 using PropertyMaster.PropertyManagement.API.Services.Interfaces;
 using PropertyMaster.PropertyManagement.API.Services.Implementations;
+using PropertyMaster.PropertyManagement.API.Services.BackgroundServices;
 
 var builder = WebApplication.CreateBuilder(args);
 

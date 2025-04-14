@@ -2,8 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using PropertyMaster.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
-using PropertyMaster.Models.Entities;
 using System;
 
 
@@ -15,6 +13,10 @@ namespace PropertyMaster.PropertyManagement.API
             : base(options)
         {
         }
+
+        /// <summary>
+        /// Represents the collection of entries in the database.
+        /// </summary>
         public DbSet<Property> Properties { get; set; }
         public DbSet<Unit> Units { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
@@ -23,7 +25,6 @@ namespace PropertyMaster.PropertyManagement.API
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<MaintenanceRequest> MaintenanceRequests { get; set; }
-
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -52,13 +53,13 @@ namespace PropertyMaster.PropertyManagement.API
                 .HasOne(d => d.Property)
                 .WithMany()
                 .HasForeignKey(d => d.PropertyId)
-                .OnDelete(DeleteBehavior.Restrict); // Already using Restrict, which is correct
+                .OnDelete(DeleteBehavior.Restrict);
                 
             modelBuilder.Entity<Document>()
                 .HasOne(d => d.Unit)
                 .WithMany()
                 .HasForeignKey(d => d.UnitId)
-                .OnDelete(DeleteBehavior.NoAction); // Change from SetNull to NoAction
+                .OnDelete(DeleteBehavior.NoAction);
                 
             modelBuilder.Entity<Document>()
                 .HasOne(d => d.Tenant)
