@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   AppBar, 
   Toolbar, 
@@ -9,23 +9,15 @@ import {
   Paper, 
   ClickAwayListener,
   MenuList,
-  MenuItem,
-  ListItemIcon,
-  ListItemText
+  MenuItem
 } from '@mui/material';
-import { 
-  Link as RouterLink, 
-  useNavigate 
-} from 'react-router-dom';
-import { Notifications as NotificationsIcon } from '@mui/icons-material';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { authService, UserInfo } from '../services/authService';
 
 const NavigationBar: React.FC = () => {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [currentUser, setCurrentUser] = useState<UserInfo | null>(null);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const maintenanceButtonRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const token = authService.getToken();
@@ -38,35 +30,68 @@ const NavigationBar: React.FC = () => {
     }
   }, []);
 
-  const handleMouseEnter = () => {
-    if (maintenanceButtonRef.current) {
-      setAnchorEl(maintenanceButtonRef.current);
-    }
-  };
-
-  const handleMouseLeave = () => {
-    setTimeout(() => {
-      setAnchorEl(null);
-    }, 200);
-  };
-
-  const handleMenuMouseEnter = () => {
-    // Prevent the menu from closing
-    if (anchorEl) {
-      clearTimeout(window as any);
-    }
-  };
-
-  const handleMenuItemClick = (path: string) => {
-    navigate(path);
-    setAnchorEl(null);
-  };
-
   const handleLogout = () => {
     authService.logout();
     setIsAuthenticated(false);
     setCurrentUser(null);
     navigate('/login');
+  };
+
+  // Render menu items based on user role
+  const renderMenuItems = () => {
+    if (!currentUser) return null;
+
+    switch (currentUser.role) {
+      case 'Admin':
+        return (
+          <>
+            <Button color="inherit" component={RouterLink} to="/admin/settings">
+              Admin Settings
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/properties">
+              All Properties
+            </Button>
+          </>
+        );
+      case 'Owner':
+        return (
+          <>
+            <Button color="inherit" component={RouterLink} to="/dashboard">
+              Dashboard
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/properties">
+              My Properties
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/properties/new">
+              Add Property
+            </Button>
+          </>
+        );
+      case 'PropertyManager':
+        return (
+          <>
+            <Button color="inherit" component={RouterLink} to="/maintenance-requests">
+              Maintenance Requests
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/properties">
+              Managed Properties
+            </Button>
+          </>
+        );
+      case 'Tenant':
+        return (
+          <>
+            <Button color="inherit" component={RouterLink} to={`/tenants/${currentUser.userId}`}>
+              My Tenant Profile
+            </Button>
+            <Button color="inherit" component={RouterLink} to="/maintenance-requests/create">
+              Request Maintenance
+            </Button>
+          </>
+        );
+      default:
+        return null;
+    }
   };
 
   return (
@@ -81,69 +106,10 @@ const NavigationBar: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {isAuthenticated ? (
             <>
-              <Button color="inherit" component={RouterLink} to="/dashboard">
-                Dashboard
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/properties">
-                Properties
-              </Button>
-              <Button color="inherit" component={RouterLink} to="/calendar">
-                Calendar
-              </Button>
-              {/* Maintenance Dropdown */}
-              <div 
-                onMouseEnter={handleMouseEnter}
-                onMouseLeave={handleMouseLeave}
-                style={{ position: 'relative' }}
-              >
-                <Button 
-                  ref={maintenanceButtonRef}
-                  color="inherit"
-                  aria-haspopup="true"
-                  aria-expanded={Boolean(anchorEl)}
-                >
-                  Maintenance
-                </Button>
-                <Popper
-                  open={Boolean(anchorEl)}
-                  anchorEl={anchorEl}
-                  placement="bottom-start"
-                  sx={{ 
-                    zIndex: (theme) => theme.zIndex.modal,
-                    marginTop: '8px' // Slight spacing from the button
-                  }}
-                >
-                  <Paper 
-                    onMouseEnter={handleMenuMouseEnter}
-                    onMouseLeave={handleMouseLeave}
-                  >
-                    <ClickAwayListener onClickAway={() => setAnchorEl(null)}>
-                      <MenuList>
-                        <MenuItem 
-                          onClick={() => handleMenuItemClick('/maintenance-requests')}
-                        >
-                          View Requests
-                        </MenuItem>
-                        <MenuItem 
-                          onClick={() => handleMenuItemClick('/maintenance-requests/create')}
-                        >
-                          Create Request
-                        </MenuItem>
-                        <MenuItem component={RouterLink} to="/settings/notifications">
-                          <ListItemIcon>
-                              <NotificationsIcon fontSize="small" />
-                          </ListItemIcon>
-                          <ListItemText>Notification Settings</ListItemText>
-                      </MenuItem>
-                      </MenuList>
-                    </ClickAwayListener>
-                  </Paper>
-                </Popper>
-              </div>
-
+              {renderMenuItems()}
               {currentUser && (
                 <Typography sx={{ mx: 2 }}>
-                  Welcome, {currentUser.firstName}!
+                  Welcome, {currentUser.firstName} ({currentUser.role})!
                 </Typography>
               )}
               <Button color="inherit" onClick={handleLogout}>

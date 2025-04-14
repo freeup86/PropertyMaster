@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PropertyMaster.Models.DTOs;
@@ -16,17 +17,73 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
         private readonly PropertyMasterApiContext _context;
         private readonly IEmailSender _emailSender;
         private readonly ILogger<NotificationService> _logger;
+        private readonly IMapper _mapper;
 
         public NotificationService(
             PropertyMasterApiContext context,
             IEmailSender emailSender,
-            ILogger<NotificationService> logger)
+            ILogger<NotificationService> logger,
+            IMapper mapper)
         {
             _context = context;
             _emailSender = emailSender;
             _logger = logger;
+            _mapper = mapper;
         }
 
+        public async Task<NotificationSettingsDto> GetNotificationSettingsAsync(Guid userId)
+        {
+            var settings = await _context.NotificationSettings
+                .FirstOrDefaultAsync(ns => ns.UserId == userId);
+            
+            return _mapper.Map<NotificationSettingsDto>(settings);
+        }
+
+        public async Task<NotificationSettingsDto> CreateDefaultSettingsAsync(Guid userId)
+        {
+            var settings = new NotificationSettings
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                LeaseExpirationReminders = true,
+                RentDueReminders = true,
+                MaintenanceReminders = true,
+                AdvanceNoticeDays = 30,
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            };
+            
+            _context.NotificationSettings.Add(settings);
+            await _context.SaveChangesAsync();
+            
+            return _mapper.Map<NotificationSettingsDto>(settings);
+        }
+
+        public async Task<NotificationSettingsDto> UpdateNotificationSettingsAsync(Guid userId, UpdateNotificationSettingsDto settingsDto)
+        {
+            var settings = await _context.NotificationSettings
+                .FirstOrDefaultAsync(ns => ns.UserId == userId);
+            
+            if (settings == null)
+            {
+                // Create new settings if none exists
+                return await CreateDefaultSettingsAsync(userId);
+            }
+            
+            // Update settings
+            settings.LeaseExpirationReminders = settingsDto.LeaseExpirationReminders;
+            settings.RentDueReminders = settingsDto.RentDueReminders;
+            settings.MaintenanceReminders = settingsDto.MaintenanceReminders;
+            settings.AdvanceNoticeDays = settingsDto.AdvanceNoticeDays;
+            settings.ModifiedDate = DateTime.UtcNow;
+            
+            _context.NotificationSettings.Update(settings);
+            await _context.SaveChangesAsync();
+            
+            return _mapper.Map<NotificationSettingsDto>(settings);
+        }
+
+        // Existing methods
         public async Task SendLeaseExpirationRemindersAsync()
         {
             try

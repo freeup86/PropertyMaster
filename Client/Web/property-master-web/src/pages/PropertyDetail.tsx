@@ -4,6 +4,8 @@ import React, { useEffect, useState } from 'react';
 import PropertyFinancialDashboard from '../components/financial/PropertyFinancialDashboard';
 import TransactionManager from '../components/financial/TransactionManager';
 import DocumentManager from '../components/documents/DocumentManager';
+import PropertyComparisonTool from '../components/PropertyComparisonTool';
+import { authService } from '../services/authService';
 
 import { 
   Container, 
@@ -67,6 +69,8 @@ const PropertyDetail: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
+  const currentUser = authService.getCurrentUser();
+  const userId = currentUser?.userId || '';
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -307,7 +311,9 @@ const PropertyDetail: React.FC = () => {
           </Paper>
         </Box>
       </Box>
-
+      <Box mt={4}>
+        <PropertyComparisonTool userId={userId} />
+      </Box>
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}

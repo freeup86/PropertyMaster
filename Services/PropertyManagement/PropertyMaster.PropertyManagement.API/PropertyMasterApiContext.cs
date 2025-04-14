@@ -25,6 +25,7 @@ namespace PropertyMaster.PropertyManagement.API
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Document> Documents { get; set; }
         public DbSet<MaintenanceRequest> MaintenanceRequests { get; set; }
+        public DbSet<NotificationSettings> NotificationSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -66,6 +67,12 @@ namespace PropertyMaster.PropertyManagement.API
                 .WithMany()
                 .HasForeignKey(d => d.TenantId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            modelBuilder.Entity<NotificationSettings>()
+                .HasOne(ns => ns.User)
+                .WithOne() // Assuming one-to-one relationship
+                .HasForeignKey<NotificationSettings>(ns => ns.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             base.OnModelCreating(modelBuilder);
         }

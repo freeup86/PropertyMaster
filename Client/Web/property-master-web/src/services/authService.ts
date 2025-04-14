@@ -21,6 +21,17 @@ interface AuthResponse {
   userId: string; // Guid as string
   firstName: string;
   lastName: string;
+  role: string;
+}
+
+interface AuthResponseDto {
+  token: string;
+  expiration: string;
+  email: string;
+  userId: string;
+  firstName: string;
+  lastName: string;
+  role: string;
 }
 
 // Simplified user info structure for storing in localStorage
@@ -29,6 +40,7 @@ export interface UserInfo {
    userId: string;
    firstName: string;
    lastName: string;
+   role: string;
 }
 
 // --- Interfaces for Password Reset ---
@@ -63,26 +75,28 @@ const register = async (data: RegisterData): Promise<any> => {
   }
 };
 
-const login = async (data: LoginData): Promise<AuthResponse> => {
+const login = async (data: LoginData): Promise<AuthResponseDto> => {
   try {
-    const response = await api.post<AuthResponse>('/auth/login', data);
+    const response = await api.post<AuthResponseDto>('/auth/login', data);
     if (response.data && response.data.token) {
       localStorage.setItem('authToken', response.data.token);
       const userInfo: UserInfo = {
-          email: response.data.email,
-          userId: response.data.userId,
-          firstName: response.data.firstName,
-          lastName: response.data.lastName
+        email: response.data.email,
+        userId: response.data.userId,
+        firstName: response.data.firstName,
+        lastName: response.data.lastName,
+        role: response.data.role // Add this line
       };
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
       console.log('Login successful, token stored.');
     }
     return response.data;
   } catch (error: any) {
-     console.error("Login error:", error.response?.data || error.message);
+    console.error("Login error:", error.response?.data || error.message);
     throw error.response?.data || { message: 'An unknown login error occurred' };
   }
 };
+
 
 const logout = (): void => {
   localStorage.removeItem('authToken');
@@ -92,15 +106,16 @@ const logout = (): void => {
 };
 
 const getCurrentUser = (): UserInfo | null => {
-    const userInfoStr = localStorage.getItem('userInfo');
-    try {
-        return userInfoStr ? JSON.parse(userInfoStr) : null;
-    } catch (error) {
-        console.error("Error parsing user info from localStorage:", error);
-        localStorage.removeItem('userInfo');
-        return null;
-    }
+  const userInfoStr = localStorage.getItem('userInfo');
+  try {
+    return userInfoStr ? JSON.parse(userInfoStr) : null;
+  } catch (error) {
+    console.error("Error parsing user info from localStorage:", error);
+    localStorage.removeItem('userInfo');
+    return null;
+  }
 };
+
 
 const getToken = (): string | null => {
     return localStorage.getItem('authToken');

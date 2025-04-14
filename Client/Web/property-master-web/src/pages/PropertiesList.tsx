@@ -13,11 +13,15 @@ import {
 import { Add as AddIcon } from '@mui/icons-material';
 import { Link as RouterLink } from 'react-router-dom';
 import propertyService, { Property } from '../services/propertyService';
+import PropertyComparisonTool from '../components/PropertyComparisonTool';
+import { authService } from '../services/authService';
 
 const PropertiesList: React.FC = () => {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const currentUser = authService.getCurrentUser();
+  const userId = currentUser?.userId || '';
 
   useEffect(() => {
     const fetchProperties = async () => {
@@ -71,7 +75,9 @@ const PropertiesList: React.FC = () => {
           Add Property
         </Button>
       </Box>
-
+      <Box mb={4}>
+        <PropertyComparisonTool userId={userId} />
+      </Box>
       {properties.length === 0 ? (
         <Box textAlign="center" p={4}>
           <Typography variant="h6" gutterBottom>

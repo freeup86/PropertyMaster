@@ -41,7 +41,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
 
         // --- DTOs for Auth ---
         // Using records for simpler DTOs
-        public record RegisterDto([Required][MaxLength(100)] string FirstName, [Required][MaxLength(100)] string LastName, [Required][EmailAddress] string Email, [Required] string Password);
+        public record RegisterDto([Required][MaxLength(100)] string FirstName, [Required][MaxLength(100)] string LastName, [Required][EmailAddress] string Email, [Required] string Password, UserRole Role = UserRole.Owner);
         public record LoginDto([Required][EmailAddress] string Email, [Required] string Password);
         public record AuthResponseDto(string Token, DateTime Expiration, string Email, Guid UserId, string FirstName, string LastName);
         public record ForgotPasswordDto([Required][EmailAddress] string Email);
@@ -85,17 +85,27 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                     Email = registerDto.Email,
                     UserName = registerDto.Email,
                     SecurityStamp = Guid.NewGuid().ToString(),
-                    IsActive = true
+                    IsActive = true,
+                    Role = registerDto.Role // Add role assignment
                 };
 
                 var result = await _userManager.CreateAsync(user, registerDto.Password);
                 if (!result.Succeeded)
                 {
-                    _logger.LogWarning("User registration failed for {Email}. Errors: {Errors}", registerDto.Email, result.Errors.Select(e => e.Description));
-                    return BadRequest(new { message = "User creation failed. Please check details and try again.", errors = result.Errors });
+                    _logger.LogWarning("User registration failed for {Email}. Errors: {Errors}", 
+                        registerDto.Email, 
+                        result.Errors.Select(e => e.Description));
+                    return BadRequest(new { 
+                        message = "User creation failed. Please check details and try again.", 
+                        errors = result.Errors 
+                    });
                 }
+                
                 _logger.LogInformation("User {Email} registered successfully.", registerDto.Email);
-                return Ok(new { message = "User created successfully! Please log in." });
+                return Ok(new { 
+                    message = "User created successfully! Please log in.",
+                    role = user.Role.ToString()
+                });
             }
             catch (Exception ex)
             {
@@ -123,6 +133,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                         new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                        new Claim(ClaimTypes.Role, user.Role.ToString()),
                         new Claim("userId", user.Id.ToString()),
                         new Claim("firstName", user.FirstName ?? ""),
                         new Claim("lastName", user.LastName ?? ""),

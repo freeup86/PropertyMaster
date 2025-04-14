@@ -63,6 +63,9 @@ namespace PropertyMaster.PropertyManagement.API.Mapping
             // Add User mapping
             CreateMap<ApplicationUser, UserDto>()
                 .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.Email));
+            
+            //Notification mapping
+            CreateMap<NotificationSettings, NotificationSettingsDto>();
         }
     }
 }

@@ -12,11 +12,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using PropertyMaster.Models.Entities;
-using PropertyMaster.PropertyManagement.API;
 using System;
-using PropertyMaster.PropertyManagement.API.Services.Interfaces;
-using PropertyMaster.PropertyManagement.API.Services.Implementations;
 using PropertyMaster.PropertyManagement.API.Services.BackgroundServices;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,18 +59,44 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
-    options.SaveToken = true; // Save token in AuthenticationProperties (useful sometimes)
-    options.RequireHttpsMetadata = false; // Set true in production (requires HTTPS)
+    options.SaveToken = true;
+    options.RequireHttpsMetadata = false;
     options.TokenValidationParameters = new TokenValidationParameters()
     {
-        ValidateIssuer = true, // Validate the server that generated the token (Issuer)
-        ValidateAudience = true, // Validate the recipient of the token is authorized (Audience)
-        ValidateLifetime = true, // Check if the token is expired
-        ValidateIssuerSigningKey = true, // Validate the signature of the token
-        ValidAudience = builder.Configuration["Jwt:Audience"], // Get Audience from appsettings.json
-        ValidIssuer = builder.Configuration["Jwt:Issuer"], // Get Issuer from appsettings.json
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])) // Get Secret Key from appsettings.json
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        
+        // Add role validation
+        RoleClaimType = ClaimTypes.Role
     };
+});
+
+// Configure authorization roles
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => 
+        policy.RequireRole(UserRole.Admin.ToString()));
+    
+    options.AddPolicy("OwnerOrAdmin", policy => 
+        policy.RequireRole(UserRole.Owner.ToString(), UserRole.Admin.ToString()));
+    
+    options.AddPolicy("PropertyManagerAccess", policy => 
+        policy.RequireRole(
+            UserRole.PropertyManager.ToString(), 
+            UserRole.Admin.ToString(), 
+            UserRole.Owner.ToString()));
+    
+    options.AddPolicy("TenantAccess", policy => 
+        policy.RequireRole(
+            UserRole.Tenant.ToString(), 
+            UserRole.PropertyManager.ToString(), 
+            UserRole.Admin.ToString(), 
+            UserRole.Owner.ToString()));
 });
 
 // Register services
@@ -85,6 +109,9 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IMaintenanceRequestService, MaintenanceRequestService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<NotificationBackgroundService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHostedService<NotificationBackgroundService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(Program).Assembly);

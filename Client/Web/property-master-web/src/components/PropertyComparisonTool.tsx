@@ -3,6 +3,7 @@ import { Property } from '../services/propertyService';
 import { PropertyPerformance } from '../services/financialService';
 import propertyService from '../services/propertyService';
 import financialService from '../services/financialService';
+import PerformanceComparisonChart from './PerformanceComparisonChart';
 
 interface PropertyComparisonToolProps {
   userId: string;
@@ -22,7 +23,7 @@ const PropertyComparisonTool: React.FC<PropertyComparisonToolProps> = ({ userId 
         console.error('Error fetching properties:', error);
       }
     };
-  
+
     fetchProperties();
   }, [userId]);
 
@@ -65,14 +66,11 @@ const PropertyComparisonTool: React.FC<PropertyComparisonToolProps> = ({ userId 
         Compare Properties
       </button>
       <div className="mt-6">
-        {performanceData.map((performance) => (
-          <div key={performance.propertyId} className="mb-4">
-            <h3 className="text-xl font-bold">{performance.propertyName}</h3>
-            <p>Cash on Cash Return: {performance.cashOnCashReturn.toFixed(2)}%</p>
-            <p>Annualized Return: {performance.annualizedReturn.toFixed(2)}%</p>
-            {/* Add more performance metrics as needed */}
-          </div>
-        ))}
+        {performanceData.length > 0 ? (
+          <PerformanceComparisonChart data={performanceData} />
+        ) : (
+          <p>Select properties to compare their performance.</p>
+        )}
       </div>
     </div>
   );
