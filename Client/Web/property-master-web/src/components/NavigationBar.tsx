@@ -23,7 +23,9 @@ const NavigationBar: React.FC = () => {
     const token = authService.getToken();
     if (token) {
       setIsAuthenticated(true);
-      setCurrentUser(authService.getCurrentUser());
+      const currentUser = authService.getCurrentUser();
+      console.log('Current User Role:', currentUser?.role);
+      setCurrentUser(currentUser);
     } else {
       setIsAuthenticated(false);
       setCurrentUser(null);
@@ -40,17 +42,21 @@ const NavigationBar: React.FC = () => {
   // Render menu items based on user role
   const renderMenuItems = () => {
     if (!currentUser) return null;
+    console.log('Rendering menu for role:', currentUser.role);
 
     switch (currentUser.role) {
       case 'Admin':
         return (
           <>
-            <Button color="inherit" component={RouterLink} to="/admin/settings">
-              Admin Settings
-            </Button>
-            <Button color="inherit" component={RouterLink} to="/properties">
-              All Properties
-            </Button>
+          <Button color="inherit" component={RouterLink} to="/admin/create-user">
+            Create Admin User
+          </Button>
+          <Button color="inherit" component={RouterLink} to="/admin/promote-user">
+            Promote User
+          </Button>
+          <Button color="inherit" component={RouterLink} to="/admin/settings">
+            Admin Settings
+          </Button>
           </>
         );
       case 'Owner':

@@ -41,9 +41,15 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
 
         // --- DTOs for Auth ---
         // Using records for simpler DTOs
-        public record RegisterDto([Required][MaxLength(100)] string FirstName, [Required][MaxLength(100)] string LastName, [Required][EmailAddress] string Email, [Required] string Password, UserRole Role = UserRole.Owner);
+        public record RegisterDto(
+            [Required][MaxLength(100)] string FirstName, 
+            [Required][MaxLength(100)] string LastName, 
+            [Required][EmailAddress] string Email, 
+            [Required] string Password,
+            UserRole Role = UserRole.Owner // Default to Owner, but allow explicit setting
+        );
         public record LoginDto([Required][EmailAddress] string Email, [Required] string Password);
-        public record AuthResponseDto(string Token, DateTime Expiration, string Email, Guid UserId, string FirstName, string LastName);
+        public record AuthResponseDto(string Token, DateTime Expiration, string Email, Guid UserId, string FirstName, string LastName, string Role);
         public record ForgotPasswordDto([Required][EmailAddress] string Email);
 
         // --- ResetPasswordDto as a Class for proper validation attribute placement ---
@@ -86,7 +92,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                     UserName = registerDto.Email,
                     SecurityStamp = Guid.NewGuid().ToString(),
                     IsActive = true,
-                    Role = registerDto.Role // Add role assignment
+                    Role = UserRole.Owner
                 };
 
                 var result = await _userManager.CreateAsync(user, registerDto.Password);
@@ -127,6 +133,12 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                 var user = await _userManager.FindByEmailAsync(loginDto.Email);
                 if (user != null && await _userManager.CheckPasswordAsync(user, loginDto.Password))
                 {
+                    if (user.Role == 0) 
+                    {
+                        user.Role = UserRole.Owner;
+                        await _userManager.UpdateAsync(user);
+                    }
+
                     if (!user.IsActive) return Unauthorized(new { message = "User account is inactive." });
 
                     var authClaims = new List<Claim> {
@@ -137,6 +149,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                         new Claim("userId", user.Id.ToString()),
                         new Claim("firstName", user.FirstName ?? ""),
                         new Claim("lastName", user.LastName ?? ""),
+                        new Claim("role", user.Role.ToString())
                     };
                     var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
                     var tokenValidityInMinutes = _configuration.GetValue<int>("Jwt:DurationInMinutes", 60);
@@ -156,9 +169,21 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                     user.LastLoginDate = DateTime.UtcNow;
                     await _userManager.UpdateAsync(user);
 
-                    return Ok(new AuthResponseDto(jwtToken, token.ValidTo, user.Email, user.Id, user.FirstName, user.LastName));
+                    return Ok(new AuthResponseDto(
+                        jwtToken, 
+                        token.ValidTo, 
+                        user.Email, 
+                        user.Id, 
+                        user.FirstName, 
+                        user.LastName,
+                        user.Role.ToString()
+                    ));
                 }
                 _logger.LogWarning("Login attempt failed for user {Email}.", loginDto.Email);
+                _logger.LogInformation($"User Login Details:");
+                _logger.LogInformation($"Email: {user.Email}");
+                _logger.LogInformation($"Role: {user.Role}");
+                _logger.LogInformation($"Role Type: {user.Role.GetType()}");
                 return Unauthorized(new { message = "Invalid email or password." });
             }
             catch (Exception ex)

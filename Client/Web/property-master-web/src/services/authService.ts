@@ -1,4 +1,5 @@
 import api from './api'; // Import your configured Axios instance
+import { UserDto } from '../types/MaintenanceRequestTypes';
 
 // --- Interfaces matching Backend DTOs ---
 interface RegisterData {
@@ -77,21 +78,33 @@ const register = async (data: RegisterData): Promise<any> => {
 
 const login = async (data: LoginData): Promise<AuthResponseDto> => {
   try {
+    console.group('Login Process');
+    console.log('Login Attempt:', data.email);
+    
     const response = await api.post<AuthResponseDto>('/auth/login', data);
+    
+    console.log('Full Login Response:', response.data);
+    
     if (response.data && response.data.token) {
       localStorage.setItem('authToken', response.data.token);
+      
       const userInfo: UserInfo = {
         email: response.data.email,
         userId: response.data.userId,
         firstName: response.data.firstName,
         lastName: response.data.lastName,
-        role: response.data.role // Add this line
+        role: response.data.role || 'Owner' // Explicit fallback
       };
+      
+      console.log('Storing User Info:', userInfo);
+      
       localStorage.setItem('userInfo', JSON.stringify(userInfo));
-      console.log('Login successful, token stored.');
     }
+    
+    console.groupEnd();
     return response.data;
   } catch (error: any) {
+    console.groupEnd();
     console.error("Login error:", error.response?.data || error.message);
     throw error.response?.data || { message: 'An unknown login error occurred' };
   }
@@ -108,11 +121,36 @@ const logout = (): void => {
 const getCurrentUser = (): UserInfo | null => {
   const userInfoStr = localStorage.getItem('userInfo');
   try {
-    return userInfoStr ? JSON.parse(userInfoStr) : null;
+    const storedUserInfo = userInfoStr ? JSON.parse(userInfoStr) : null;
+    
+    const userInfo: UserInfo | null = storedUserInfo ? {
+      email: storedUserInfo.email,
+      userId: storedUserInfo.userId,
+      firstName: storedUserInfo.firstName,
+      lastName: storedUserInfo.lastName,
+      role: storedUserInfo.role || 'Owner'
+    } : null;
+    
+    console.log('Retrieved User Info:', userInfo);
+    
+    return userInfo;
   } catch (error) {
     console.error("Error parsing user info from localStorage:", error);
     localStorage.removeItem('userInfo');
     return null;
+  }
+};
+
+const promoteToAdmin = async (userId: string): Promise<UserDto> => {
+  try {
+    const response = await api.post<UserDto>('/UserManagement/promote-to-admin', null, {
+      params: { userId }
+    });
+    console.log('User promoted to admin:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Promotion to admin error:", error.response?.data || error.message);
+    throw error.response?.data || { message: 'An unknown error occurred promoting user' };
   }
 };
 
@@ -148,6 +186,17 @@ const resetPassword = async (data: ResetPasswordData): Promise<PasswordResponseM
     }
 };
 
+const createAdminUser = async (data: RegisterData): Promise<UserDto> => {
+  try {
+    const response = await api.post<UserDto>('/UserManagement/create-admin', data);
+    console.log('Admin user creation successful:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error("Admin user creation error:", error.response?.data || error.message);
+    throw error.response?.data || { message: 'An unknown error occurred creating admin user' };
+  }
+};
+
 
 // Export all functions, including the new ones
 export const authService = {
@@ -156,6 +205,8 @@ export const authService = {
   logout,
   getCurrentUser,
   getToken,
-  forgotPassword, // Add new function
-  resetPassword,  // Add new function
+  forgotPassword,
+  resetPassword,
+  createAdminUser,
+  promoteToAdmin,
 };

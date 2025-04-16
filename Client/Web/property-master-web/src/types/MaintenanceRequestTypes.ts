@@ -58,3 +58,12 @@ export interface PropertyDto {
     assignedTo?: string;
     notes?: string;
   }
+
+  export interface UserDto {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    role: string;
+    isActive: boolean;
+  }

@@ -75,9 +75,7 @@ const PropertiesList: React.FC = () => {
           Add Property
         </Button>
       </Box>
-      <Box mb={4}>
-        <PropertyComparisonTool userId={userId} />
-      </Box>
+
       {properties.length === 0 ? (
         <Box textAlign="center" p={4}>
           <Typography variant="h6" gutterBottom>
@@ -98,56 +96,62 @@ const PropertiesList: React.FC = () => {
           </Button>
         </Box>
       ) : (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          {properties.map((property) => (
-            <Card key={property.id} sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.33% - 16px)' }, display: 'flex', flexDirection: 'column' }}>
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" gutterBottom>
-                  {property.name}
-                </Typography>
-                <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                  {property.address}, {property.city}, {property.state} {property.zipCode}
-                </Typography>
-                <Box sx={{ display: 'flex', mb: 2 }}>
-                  <Box sx={{ width: '50%' }}>
-                    <Typography variant="caption" color="textSecondary">
-                      Current Value
-                    </Typography>
-                    <Typography variant="body1">
-                      {formatCurrency(property.currentValue)}
-                    </Typography>
+        <>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+            {properties.map((property) => (
+              <Card key={property.id} sx={{ width: { xs: '100%', sm: 'calc(50% - 16px)', md: 'calc(33.33% - 16px)' }, display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ flexGrow: 1 }}>
+                  <Typography variant="h6" gutterBottom>
+                    {property.name}
+                  </Typography>
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                    {property.address}, {property.city}, {property.state} {property.zipCode}
+                  </Typography>
+                  <Box sx={{ display: 'flex', mb: 2 }}>
+                    <Box sx={{ width: '50%' }}>
+                      <Typography variant="caption" color="textSecondary">
+                        Current Value
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatCurrency(property.currentValue)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ width: '50%' }}>
+                      <Typography variant="caption" color="textSecondary">
+                        Acquisition Price
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatCurrency(property.acquisitionPrice)}
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Box sx={{ width: '50%' }}>
-                    <Typography variant="caption" color="textSecondary">
-                      Acquisition Price
-                    </Typography>
-                    <Typography variant="body1">
-                      {formatCurrency(property.acquisitionPrice)}
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-              <CardActions>
-                <Button 
-                  size="small" 
-                  color="primary" 
-                  component={RouterLink} 
-                  to={`/properties/${property.id}`}
-                >
-                  View Details
-                </Button>
-                <Button 
-                  size="small" 
-                  color="primary" 
-                  component={RouterLink} 
-                  to={`/properties/${property.id}/edit`}
-                >
-                  Edit
-                </Button>
-              </CardActions>
-            </Card>
-          ))}
-        </Box>
+                </CardContent>
+                <CardActions>
+                  <Button 
+                    size="small" 
+                    color="primary" 
+                    component={RouterLink} 
+                    to={`/properties/${property.id}`}
+                  >
+                    View Details
+                  </Button>
+                  <Button 
+                    size="small" 
+                    color="primary" 
+                    component={RouterLink} 
+                    to={`/properties/${property.id}/edit`}
+                  >
+                    Edit
+                  </Button>
+                </CardActions>
+              </Card>
+            ))}
+          </Box>
+
+          <Box mb={4}>
+            <PropertyComparisonTool userId={userId} />
+          </Box>
+        </>
       )}
     </Container>
   );

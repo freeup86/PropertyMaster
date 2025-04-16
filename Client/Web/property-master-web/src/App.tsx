@@ -1,15 +1,14 @@
-import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CssBaseline, Box } from '@mui/material';
 
 // Auth Components
-import ProtectedRoute from './components/Auth/ProtectedRoute'; // Add this import
-import RoleBasedRoute from './components/RoleBasedRoute'; // Add this import
+import ProtectedRoute from './components/Auth/ProtectedRoute'; 
+import RoleBasedRoute from './components/RoleBasedRoute'; 
 import LoginForm from './components/Auth/LoginForm';
 import RegisterForm from './components/Auth/RegisterForm';
 import ForgotPasswordForm from './components/Auth/ForgotPasswordForm';
 import ResetPasswordForm from './components/Auth/ResetPasswordForm';
-import Unauthorized from './pages/Unauthorized'; // Add this import
+import Unauthorized from './pages/Unauthorized'; 
 
 // Navigation and Pages
 import NavigationBar from './components/NavigationBar';
@@ -20,6 +19,7 @@ import AddProperty from './pages/AddProperty';
 import EditProperty from './pages/EditProperty';
 import TenantDetail from './pages/TenantDetail';
 import NotificationSettings from './components/settings/NotificationSettings';
+import CreateAdminUserForm from './components/Auth/CreateAdminUserForm';
 import { CalendarView } from './components/calendar/CalendarView';
 
 // Maintenance Requests
@@ -29,6 +29,23 @@ import MaintenanceRequestDetails from './components/MaintenanceRequestDetails';
 
 import AdminDashboard from './components/dashboards/AdminDashboard';
 import OwnerDashboard from './components/dashboards/OwnerDashboard';
+import DebugUserInfo from './pages/DebugUserInfo';
+import React, { useEffect } from 'react';
+import { authService } from './services/authService';
+import UserPromotionForm from './components/Admin/UserPromotionForm';
+
+const UserInfoDebug: React.FC = () => {
+  useEffect(() => {
+    const token = authService.getToken();
+    const user = authService.getCurrentUser();
+    
+    console.log('Debug - Token:', token);
+    console.log('Debug - Current User:', user);
+  }, []);
+
+  return null;
+};
+
 
 const App: React.FC = () => {
   return (
@@ -51,9 +68,11 @@ const App: React.FC = () => {
               <Route path="/dashboard" element={<Dashboard />} />
             </Route>
 
-            {/* Role-Specific Routes */}
+            {/* Admin-Only Routes */}
             <Route element={<RoleBasedRoute allowedRoles={['Admin']} />}>
               <Route path="/admin/settings" element={<NotificationSettings />} />
+              <Route path="/admin/create-user" element={<CreateAdminUserForm />} />
+              <Route path="/admin/promote-user" element={<UserPromotionForm />} />
             </Route>
 
             <Route element={<RoleBasedRoute allowedRoles={['Owner', 'Admin']} />}>
@@ -64,7 +83,7 @@ const App: React.FC = () => {
             </Route>
 
             {/* Property Manager, Owner, and Admin Routes */}
-            <Route element={<RoleBasedRoute allowedRoles={['PropertyManager', 'Owner', 'Admin']} />}>
+            <Route element={<RoleBasedRoute allowedRoles={['PropertyManager', 'Owner', 'Admin', 'Tenant']} />}>
               <Route path="/maintenance-requests" element={<MaintenanceRequestList />} />
               <Route path="/maintenance-requests/create" element={<CreateMaintenanceRequest />} />
               <Route path="/maintenance-requests/:id" element={<MaintenanceRequestDetails />} />
@@ -75,6 +94,9 @@ const App: React.FC = () => {
             <Route element={<RoleBasedRoute allowedRoles={['Tenant', 'PropertyManager', 'Owner', 'Admin']} />}>
               <Route path="/tenants/:id" element={<TenantDetail />} />
             </Route>
+
+            {/* Debug Route */}
+            <Route path="/debug" element={<DebugUserInfo />} />
           </Routes>
         </Box>
       </Box>
