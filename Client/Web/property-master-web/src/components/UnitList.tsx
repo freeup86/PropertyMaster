@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { 
+import React, { useState, useCallback, useEffect, useRef } from 'react';
+ import { 
   Container, 
   Typography, 
   Button, 
@@ -10,19 +10,19 @@ import {
   CircularProgress, 
   Alert 
 } from '@mui/material';
-import { Add as AddIcon } from '@mui/icons-material';
-import unitService, { Unit } from '../services/unitService';
-
-// Define props interface
-interface UnitListProps {
+ import { Add as AddIcon } from '@mui/icons-material';
+ import unitService, { Unit } from '../services/unitService';
+ 
+ // Define props interface
+ interface UnitListProps {
   propertyId: string;
   onAddUnit?: () => void;
   onEditUnit?: (unitId: string) => Promise<void>;
-  onDeleteUnit?: (unitId: string) => void;
-  onManageImages?: (unitId: string) => void;
-}
-
-const UnitList: React.FC<UnitListProps> = ({ 
+  onDeleteUnit?: (unitId: string)=> void;
+  onManageImages?: (unitId: string)=> void;
+ }
+ 
+ const UnitList: React.FC<UnitListProps> = ({ 
   propertyId, 
   onAddUnit, 
   onEditUnit, 
@@ -30,48 +30,83 @@ const UnitList: React.FC<UnitListProps> = ({
   onManageImages 
 }) => {
   const [units, setUnits] = useState<Unit[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const renderCountRef = useRef(0);
+  renderCountRef.current++;
+
+  console.log(`UnitList Rendered (${renderCountRef.current}) - propertyId:`, propertyId, 'state:', units);
+
+ 
   const fetchUnits = useCallback(async () => {
+    console.log('fetchUnits called', { propertyId });
     if (!propertyId) {
       setError('Property ID is required');
       setLoading(false);
       return;
     }
-
+ 
     try {
       setLoading(true);
       setError(null);
       const fetchedUnits = await unitService.getUnits(propertyId);
+      console.log('fetchUnits response:', fetchedUnits); // Log the response
       setUnits(fetchedUnits);
-    } catch (err) {
+      console.log('fetchUnits completed, state updated:', units); // Log state *after* update
+    } catch (err: any) {
+      console.error('fetchUnits error:', err);
       const errorMessage = err instanceof Error 
         ? err.message 
         : 'Failed to load units. Please try again later.';
       setError(errorMessage);
     } finally {
       setLoading(false);
+      console.log('fetchUnits finally, loading set to false');
     }
   }, [propertyId]);
-
+ 
   useEffect(() => {
+    console.log('useEffect - fetchUnits called on mount');
     fetchUnits();
-  }, [fetchUnits]);
-
-  const handleDeleteUnit = async (unitId: string) => {
+  }, []); //  **** EMPTY dependency array - runs only ONCE on mount ****
+ 
+  const handleDeleteUnit = useCallback(async (unitId: string) => {
+    console.log('handleDeleteUnit called for unitId:', unitId);
     try {
       await unitService.deleteUnit(propertyId, unitId);
       setUnits(currentUnits => currentUnits.filter(unit => unit.id !== unitId));
       onDeleteUnit?.(unitId);
-    } catch (err) {
+      console.log('handleDeleteUnit completed for unitId:', unitId);
+    } catch (err: any) {
+      console.error('handleDeleteUnit error:', err);
       const errorMessage = err instanceof Error 
         ? err.message 
         : 'Failed to delete unit. Please try again.';
       setError(errorMessage);
     }
-  };
-
+  }, [propertyId, onDeleteUnit]);
+ 
+  const handleManageImages = useCallback((unitId: string) => {
+    console.log('handleManageImages called for unitId:', unitId);
+    if (onManageImages) {
+      console.log('handleManageImages callback called');
+      onManageImages(unitId);
+    } else {
+      console.warn('onManageImages callback is undefined!');
+    }
+  }, [onManageImages]);
+ 
+  const handleEditUnit = useCallback((unitId: string) => {
+    console.log('handleEditUnit called for unitId:', unitId);
+    if (onEditUnit) {
+      console.log('handleEditUnit callback called');
+      onEditUnit(unitId);
+    } else {
+      console.warn('onEditUnit callback is undefined!');
+    }
+  }, [onEditUnit]);
+ 
   if (loading) {
     return (
       <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -79,7 +114,7 @@ const UnitList: React.FC<UnitListProps> = ({
       </Container>
     );
   }
-
+ 
   if (error) {
     return (
       <Container>
@@ -87,7 +122,7 @@ const UnitList: React.FC<UnitListProps> = ({
       </Container>
     );
   }
-
+ 
   return (
     <Container maxWidth="lg">
       {units.length === 0 ? (
@@ -201,6 +236,6 @@ const UnitList: React.FC<UnitListProps> = ({
       )}
     </Container>
   );
-};
-
-export default UnitList;
+ };
+ 
+ export default UnitList;

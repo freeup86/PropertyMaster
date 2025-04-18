@@ -46,10 +46,11 @@ const UnitImageUploader: React.FC<UnitImageUploaderProps> = ({
 
   // Call the callback whenever images change
   useEffect(() => {
+    console.log('UnitImageUploader - useEffect triggered, component mountedd');
     if (onImagesUploaded && images.length >= 0) {
       onImagesUploaded(images);
     }
-  }, [images, onImagesUploaded]);
+  }, []);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {

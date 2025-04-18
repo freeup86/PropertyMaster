@@ -1,18 +1,22 @@
 import React from 'react';
-import { useFormik } from 'formik';
+import { useFormik, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
-import { 
-  TextField, 
-  Button, 
+import {
+  TextField,
+  Button,
   Box,
   FormControlLabel,
   Checkbox,
   InputLabel,
   MenuItem,
   FormControl,
-  Select
+  Select,
 } from '@mui/material';
-import { Tenant, CreateTenantRequest, UpdateTenantRequest } from '../services/tenantService';
+import {
+  Tenant,
+  CreateTenantRequest,
+  UpdateTenantRequest,
+} from '../services/tenantService';
 import { Unit } from '../services/unitService';
 
 interface TenantFormProps {
@@ -24,39 +28,44 @@ interface TenantFormProps {
   isEditing?: boolean;
 }
 
-const TenantForm: React.FC<TenantFormProps> = ({ 
-  initialValues, 
+const TenantForm: React.FC<TenantFormProps> = ({
+  initialValues,
   units = [],
   unitId,
-  onSubmit, 
+  onSubmit,
   onCancel,
-  isEditing = false 
+  isEditing = false,
 }) => {
-  
-  const initialFormValues = initialValues ? {
-    firstName: initialValues.firstName,
-    lastName: initialValues.lastName,
-    email: initialValues.email || '',
-    phoneNumber: initialValues.phoneNumber || '',
-    leaseStartDate: initialValues.leaseStartDate ? initialValues.leaseStartDate.split('T')[0] : '',
-    leaseEndDate: initialValues.leaseEndDate ? initialValues.leaseEndDate.split('T')[0] : '',
-    unitId: initialValues.unitId
-  } : {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneNumber: '',
-    leaseStartDate: '',
-    leaseEndDate: '',
-    unitId: unitId || (units.length > 0 ? units[0].id : '')
-  };
+  const initialFormValues = initialValues
+    ? {
+        firstName: initialValues.firstName,
+        lastName: initialValues.lastName,
+        email: initialValues.email || '',
+        phoneNumber: initialValues.phoneNumber || '',
+        leaseStartDate: initialValues.leaseStartDate
+          ? initialValues.leaseStartDate.split('T')[0]
+          : '',
+        leaseEndDate: initialValues.leaseEndDate
+          ? initialValues.leaseEndDate.split('T')[0]
+          : '',
+        unitId: initialValues.unitId,
+      }
+    : {
+        firstName: '',
+        lastName: '',
+        email: '',
+        phoneNumber: '',
+        leaseStartDate: '',
+        leaseEndDate: '',
+        unitId: unitId || (units.length > 0 ? units[0].id : ''),
+      };
 
   const validationSchema = Yup.object({
     firstName: Yup.string().required('First name is required'),
     lastName: Yup.string().required('Last name is required'),
-    email: Yup.string().email('Invalid email address'),
-    phoneNumber: Yup.string(),
-    unitId: Yup.string().required('Unit is required')
+    email: Yup.string().email('Invalid email address').required('Email is required'), // Make email required
+    phoneNumber: Yup.string().required('Phone number is required'), // Make phone number required
+    unitId: Yup.string().required('Unit is required'),
   });
 
   const formik = useFormik({
@@ -67,10 +76,16 @@ const TenantForm: React.FC<TenantFormProps> = ({
       const formattedValues = {
         ...values,
         leaseStartDate: values.leaseStartDate || null,
-        leaseEndDate: values.leaseEndDate || null
+        leaseEndDate: values.leaseEndDate || null,
       };
-      onSubmit(formattedValues);
-    }
+
+      // Only call the onSubmit prop (API call) if the form is valid
+      if (formik.isValid) {
+        onSubmit(formattedValues);
+      }
+      // No need for the manual email/phone check here anymore,
+      // as formik.isValid will be false if the Yup validation failed.
+    },
   });
 
   return (
@@ -87,7 +102,7 @@ const TenantForm: React.FC<TenantFormProps> = ({
             error={formik.touched.firstName && Boolean(formik.errors.firstName)}
             helperText={formik.touched.firstName && formik.errors.firstName}
           />
-          
+
           <TextField
             fullWidth
             id="lastName"
@@ -99,7 +114,7 @@ const TenantForm: React.FC<TenantFormProps> = ({
             helperText={formik.touched.lastName && formik.errors.lastName}
           />
         </Box>
-        
+
         <TextField
           fullWidth
           id="email"
@@ -108,10 +123,10 @@ const TenantForm: React.FC<TenantFormProps> = ({
           type="email"
           value={formik.values.email}
           onChange={formik.handleChange}
-          error={formik.touched.email && Boolean(formik.errors.email)}
-          helperText={formik.touched.email && formik.errors.email}
+          error={formik.touched.email && (Boolean(formik.errors.email) || Boolean(formik.errors['email-or-phone' as keyof typeof formik.errors]))}
+          helperText={formik.touched.email && (formik.errors.email || formik.errors['email-or-phone' as keyof typeof formik.errors])}
         />
-        
+
         <TextField
           fullWidth
           id="phoneNumber"
@@ -119,10 +134,10 @@ const TenantForm: React.FC<TenantFormProps> = ({
           label="Phone Number"
           value={formik.values.phoneNumber}
           onChange={formik.handleChange}
-          error={formik.touched.phoneNumber && Boolean(formik.errors.phoneNumber)}
+          error={formik.touched.phoneNumber && (Boolean(formik.errors.phoneNumber) || Boolean(formik.errors['email-or-phone' as keyof typeof formik.errors]))}
           helperText={formik.touched.phoneNumber && formik.errors.phoneNumber}
         />
-        
+
         <Box sx={{ display: 'flex', gap: 2 }}>
           <TextField
             fullWidth
@@ -136,7 +151,7 @@ const TenantForm: React.FC<TenantFormProps> = ({
               shrink: true,
             }}
           />
-          
+
           <TextField
             fullWidth
             id="leaseEndDate"
@@ -150,7 +165,7 @@ const TenantForm: React.FC<TenantFormProps> = ({
             }}
           />
         </Box>
-        
+
         {!isEditing && units.length > 0 && (
           <FormControl fullWidth>
             <InputLabel id="unit-select-label">Unit</InputLabel>
@@ -171,19 +186,12 @@ const TenantForm: React.FC<TenantFormProps> = ({
             </Select>
           </FormControl>
         )}
-        
+
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 2 }}>
-          <Button
-            variant="outlined"
-            onClick={onCancel}
-          >
+          <Button variant="outlined" onClick={onCancel}>
             Cancel
           </Button>
-          <Button
-            variant="contained"
-            color="primary"
-            type="submit"
-          >
+          <Button variant="contained" color="primary" type="submit">
             {isEditing ? 'Update Tenant' : 'Add Tenant'}
           </Button>
         </Box>

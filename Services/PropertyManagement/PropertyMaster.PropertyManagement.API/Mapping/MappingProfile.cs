@@ -18,11 +18,14 @@ namespace PropertyMaster.PropertyManagement.API.Mapping
             // Unit mappings
             CreateMap<Unit, UnitDto>()
                 .ForMember(dest => dest.PropertyName, opt => opt.MapFrom(src => src.Property != null ? src.Property.Name : null))
-                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => 
+                 .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => 
                     string.IsNullOrEmpty(src.ImagePaths) 
                         ? new string[0] 
                         : src.ImagePaths.Split(',', StringSplitOptions.RemoveEmptyEntries)
                 ));
+            CreateMap<CreateUnitDto, Unit>();  // Add this line
+            CreateMap<UpdateUnitDto, Unit>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
             // Tenant mappings
             CreateMap<Tenant, TenantDto>()
@@ -44,7 +47,7 @@ namespace PropertyMaster.PropertyManagement.API.Mapping
             CreateMap<UpdateTransactionDto, Transaction>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
-            // Add the Document mapping
+             // Add the Document mapping
             CreateMap<Document, DocumentDto>()
                 .ForMember(dest => dest.PropertyName, opt => opt.MapFrom(src => src.Property != null ? src.Property.Name : null))
                 .ForMember(dest => dest.UnitNumber, opt => opt.MapFrom(src => src.Unit != null ? src.Unit.UnitNumber : null))

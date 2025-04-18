@@ -76,10 +76,14 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
 
         public async Task<UnitDto> UpdateUnitAsync(Guid unitId, UpdateUnitDto unitDto, Guid propertyId)
         {
+            _logger.LogInformation("Updating unit {UnitId} for property {PropertyId} with data {@UnitDto}", unitId, propertyId, unitDto);
+            
             var unit = await _context.Units
                 .Include(u => u.Property)
                 .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
             
+            _logger.LogInformation("Retrieved unit: {@Unit}", unit);
+
             if (unit == null)
                 return null;
 

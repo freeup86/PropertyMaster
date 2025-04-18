@@ -71,8 +71,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure Entity Framework
-builder.Services.AddDbContext<PropertyMasterApiContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddDbContext<PropertyMasterApiContext>(options =>{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseLoggerFactory(LoggerFactory.Create(builder => builder.AddConsole()));
+});
+    
 
 // Configure Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole<Guid>>(options =>
