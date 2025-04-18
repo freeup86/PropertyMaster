@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using PropertyMaster.Models.DTOs;
 using PropertyMaster.PropertyManagement.API.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using PropertyMaster.PropertyManagement.API;
 
 namespace PropertyMaster.PropertyManagement.API.Controllers
 {
@@ -12,13 +14,16 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
     [Route("api/properties/{propertyId}/units")]
     public class UnitsController : ControllerBase
     {
+        private readonly PropertyMasterApiContext _context;
         private readonly IUnitService _unitService;
         private readonly ILogger<UnitsController> _logger;
 
         public UnitsController(
+            PropertyMasterApiContext context,
             IUnitService unitService,
             ILogger<UnitsController> logger)
         {
+            _context = context;
             _unitService = unitService;
             _logger = logger;
         }
@@ -107,6 +112,64 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
             {
                 _logger.LogError(ex, "Error deleting unit {UnitId} for property {PropertyId}", id, propertyId);
                 return StatusCode(500, "An error occurred while deleting the unit");
+            }
+        }
+
+        [HttpPost("{id}/images")]
+        public async Task<ActionResult<UnitImageDto>> UploadUnitImages(
+            Guid propertyId, 
+            Guid id, 
+            IFormFile image)
+        {
+            try 
+            {
+                var result = await _unitService.UploadUnitImageAsync(propertyId, id, image);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error uploading unit image for unit {id}");
+                return StatusCode(500, "An error occurred while uploading image");
+            }
+        }
+
+        [HttpGet("{id}/images")]
+        public async Task<ActionResult<IEnumerable<UnitImageDto>>> GetUnitImages(Guid propertyId, Guid id)
+        {
+            try 
+            {
+                var images = await _unitService.GetUnitImagesAsync(propertyId, id);
+                return Ok(images);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving unit images for unit {id}");
+                return StatusCode(500, "An error occurred while retrieving images");
+            }
+        }
+            
+        [HttpDelete("{id}/images")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> DeleteUnitImage(
+            Guid propertyId, 
+            Guid id, 
+            [FromQuery] string imageUrl)
+        {
+            try
+            {
+                var result = await _unitService.DeleteUnitImageAsync(id, propertyId, imageUrl);
+                
+                if (!result)
+                    return NotFound("Image not found");
+                
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting image for unit {UnitId}", id);
+                return StatusCode(500, "An error occurred while deleting the image");
             }
         }
     }

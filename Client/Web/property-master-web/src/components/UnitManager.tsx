@@ -8,10 +8,12 @@ import {
   Alert,
   DialogActions,
   Button,
-  DialogContentText
+  DialogContentText,
+  Typography
 } from '@mui/material';
 import UnitList from './UnitList';
 import UnitForm from './UnitForm';
+import UnitImageUploader from '../components/units/UnitImageUploader';
 import unitService, { Unit, CreateUnitRequest, UpdateUnitRequest } from '../services/unitService';
 
 interface UnitManagerProps {
@@ -22,7 +24,8 @@ enum DialogMode {
   NONE,
   ADD,
   EDIT,
-  DELETE
+  DELETE,
+  IMAGES
 }
 
 const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
@@ -40,6 +43,16 @@ const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
       const unit = await unitService.getUnit(propertyId, unitId);
       setSelectedUnit(unit);
       setDialogMode(DialogMode.EDIT);
+    } catch (err) {
+      setError('Failed to load unit information. Please try again.');
+    }
+  };
+
+  const handleManageImages = async (unitId: string) => {
+    try {
+      const unit = await unitService.getUnit(propertyId, unitId);
+      setSelectedUnit(unit);
+      setDialogMode(DialogMode.IMAGES);
     } catch (err) {
       setError('Failed to load unit information. Please try again.');
     }
@@ -111,6 +124,7 @@ const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
         onAddUnit={handleAddUnit}
         onEditUnit={handleEditUnit}
         onDeleteUnit={handleDeleteUnit}
+        onManageImages={handleManageImages}
       />
 
       {/* Add/Edit Unit Dialog */}
@@ -136,6 +150,42 @@ const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
             isEditing={dialogMode === DialogMode.EDIT}
           />
         </DialogContent>
+      </Dialog>
+
+      {/* Image Management Dialog */}
+      <Dialog 
+        open={dialogMode === DialogMode.IMAGES} 
+        onClose={handleCloseDialog}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>
+          Manage Unit Images: {selectedUnit?.unitNumber}
+        </DialogTitle>
+        <DialogContent>
+          {error && (
+            <Box mb={2}>
+              <Alert severity="error">{error}</Alert>
+            </Box>
+          )}
+          {selectedUnit && (
+            <Box>
+              <UnitImageUploader 
+                propertyId={propertyId}
+                unitId={selectedUnit.id}
+                onImagesUploaded={() => {
+                  // Optional: add any additional logic after image upload
+                  setRefreshTrigger(prev => prev + 1);
+                }}
+              />
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="primary">
+            Close
+          </Button>
+        </DialogActions>
       </Dialog>
 
       {/* Delete Confirmation Dialog */}

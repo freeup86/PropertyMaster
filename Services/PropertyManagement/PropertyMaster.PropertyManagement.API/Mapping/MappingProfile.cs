@@ -17,10 +17,12 @@ namespace PropertyMaster.PropertyManagement.API.Mapping
 
             // Unit mappings
             CreateMap<Unit, UnitDto>()
-                .ForMember(dest => dest.PropertyName, opt => opt.MapFrom(src => src.Property != null ? src.Property.Name : null));
-            CreateMap<CreateUnitDto, Unit>();
-            CreateMap<UpdateUnitDto, Unit>()
-                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+                .ForMember(dest => dest.PropertyName, opt => opt.MapFrom(src => src.Property != null ? src.Property.Name : null))
+                .ForMember(dest => dest.ImageUrls, opt => opt.MapFrom(src => 
+                    string.IsNullOrEmpty(src.ImagePaths) 
+                        ? new string[0] 
+                        : src.ImagePaths.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                ));
 
             // Tenant mappings
             CreateMap<Tenant, TenantDto>()

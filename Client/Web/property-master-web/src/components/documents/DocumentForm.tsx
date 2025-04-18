@@ -52,6 +52,7 @@ const DocumentForm: React.FC<DocumentFormProps> = ({
     { value: 'Legal', label: 'Legal Document' },
     { value: 'Financial', label: 'Financial Document' },
     { value: 'Maintenance', label: 'Maintenance Record' },
+    { value: 'Image', label: 'Property Image' },
     { value: 'Other', label: 'Other Document' }
   ];
 

@@ -8,6 +8,7 @@ import CashFlowTrendChart from '../components/dashboard/CashFlowTrendChart';
 import PerformanceComparisonChart from '../components/dashboard/PerformanceComparisonChart';
 import propertyService, { Property } from '../services/propertyService';
 import financialService, { FinancialReport, PropertyPerformance } from '../services/financialService';
+import TaxSummaryCard from '../components/dashboard/TaxSummaryCard';
 
 const Dashboard: React.FC = () => {
   // Properly type the state variables
@@ -136,6 +137,9 @@ const Dashboard: React.FC = () => {
         </Box>
         <Box sx={{ width: '100%', mt: 3 }}>
           <PerformanceComparisonChart properties={properties} performance={performance} />
+        </Box>
+        <Box sx={{ flex: '1 1 400px', minWidth: { xs: '100%', md: 'calc(50% - 12px)' } }}>
+          <TaxSummaryCard />
         </Box>
       </Box>
     </Container>

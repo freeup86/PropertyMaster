@@ -20,5 +20,10 @@ namespace PropertyMaster.PropertyManagement.API.Services.Interfaces
         Task<IEnumerable<PropertyPerformanceDto>> GetPortfolioPerformanceAsync(Guid userId);
         Task<IEnumerable<FinancialReportDto>> GetGeneralFinancialReportAsync(Guid userId);
         Task<IEnumerable<PropertyPerformanceDto>> GetGeneralPortfolioPerformanceAsync(Guid userId);
+        Task<TaxReportDto> GetTaxReportAsync(Guid propertyId, int taxYear);
+        Task<IEnumerable<TaxReportDto>> GetAllPropertiesTaxReportAsync(Guid userId, int taxYear);
+        Task<MultiYearTaxComparisonDto> GetMultiYearTaxComparisonAsync(Guid propertyId, int startYear, int endYear);
+        Task<TaxEstimationDto> GetTaxEstimationAsync(TaxEstimationRequestDto request);
+        Task<TaxBracketCalculationDto> CalculateTaxWithBracketsAsync(TaxBracketCalculationRequestDto request);
     }
 }

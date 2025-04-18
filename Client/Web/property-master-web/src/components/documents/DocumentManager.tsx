@@ -34,7 +34,7 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({
   propertyId,
   unitId,
   tenantId,
-  title = 'Documents'
+  title = ''// title = 'Documents'
 }) => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);

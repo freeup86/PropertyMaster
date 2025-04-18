@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using PropertyMaster.Models.DTOs;
@@ -16,15 +19,18 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
         private readonly PropertyMasterApiContext _context;
         private readonly IMapper _mapper;
         private readonly ILogger<UnitService> _logger;
+        private readonly IWebHostEnvironment _environment;
 
         public UnitService(
             PropertyMasterApiContext context,
             IMapper mapper,
-            ILogger<UnitService> logger)
+            ILogger<UnitService> logger,
+            IWebHostEnvironment environment)
         {
             _context = context;
             _mapper = mapper;
             _logger = logger;
+            _environment = environment;
         }
 
         public async Task<IEnumerable<UnitDto>> GetUnitsByPropertyIdAsync(Guid propertyId)
@@ -98,6 +104,103 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
             await _context.SaveChangesAsync();
 
             return true;
+        }
+        
+        public async Task<bool> DeleteUnitImageAsync(Guid unitId, Guid propertyId, string imageUrl)
+        {
+            var unit = await _context.Units
+                .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
+            
+            if (unit == null)
+                throw new Exception($"Unit with ID {unitId} not found for property {propertyId}");
+
+            var imagePaths = string.IsNullOrEmpty(unit.ImagePaths) 
+                ? new List<string>() 
+                : unit.ImagePaths.Split(',').ToList();
+
+            if (!imagePaths.Contains(imageUrl))
+                return false;
+
+            // Remove from list and update database
+            imagePaths.Remove(imageUrl);
+            unit.ImagePaths = string.Join(",", imagePaths);
+            await _context.SaveChangesAsync();
+
+            // Delete physical file
+            var webRootPath = _environment.WebRootPath;
+            var filePath = Path.Combine(webRootPath, imageUrl.TrimStart('/'));
+            if (File.Exists(filePath))
+            {
+                File.Delete(filePath);
+            }
+
+            return true;
+        }
+
+        public async Task<UnitImageDto> UploadUnitImageAsync(Guid propertyId, Guid unitId, IFormFile image)
+        {
+            // Validate unit exists
+            var unit = await _context.Units
+                .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
+            
+            if (unit == null)
+                throw new Exception($"Unit with ID {unitId} not found");
+
+            // Convert image to byte array
+            using var memoryStream = new MemoryStream();
+            await image.CopyToAsync(memoryStream);
+            var imageData = memoryStream.ToArray();
+
+            // Create UnitImage entity
+            var unitImage = new UnitImage
+            {
+                Id = Guid.NewGuid(),
+                UnitId = unitId,
+                ImageData = imageData,
+                FileName = image.FileName,
+                ContentType = image.ContentType,
+                CreatedDate = DateTime.UtcNow,
+                ModifiedDate = DateTime.UtcNow
+            };
+
+            // Save to database
+            _context.UnitImages.Add(unitImage);
+            await _context.SaveChangesAsync();
+
+            // Map and return DTO
+            return new UnitImageDto
+            {
+                Id = unitImage.Id,
+                UnitId = unitImage.UnitId,
+                FileName = unitImage.FileName,
+                ContentType = unitImage.ContentType,
+                Base64ImageData = Convert.ToBase64String(unitImage.ImageData)
+            };
+        }
+
+        public async Task<IEnumerable<UnitImageDto>> GetUnitImagesAsync(Guid propertyId, Guid unitId)
+        {
+            // Validate unit exists
+            var unit = await _context.Units
+                .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
+            
+            if (unit == null)
+                throw new Exception($"Unit with ID {unitId} not found");
+
+            // Fetch images
+            var images = await _context.UnitImages
+                .Where(ui => ui.UnitId == unitId)
+                .ToListAsync();
+
+            // Convert to DTOs with Base64 image data
+            return images.Select(img => new UnitImageDto
+            {
+                Id = img.Id,
+                UnitId = img.UnitId,
+                FileName = img.FileName,
+                ContentType = img.ContentType,
+                Base64ImageData = Convert.ToBase64String(img.ImageData)
+            });
         }
     }
 }

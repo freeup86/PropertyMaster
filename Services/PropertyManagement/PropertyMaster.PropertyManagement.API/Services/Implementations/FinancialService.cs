@@ -632,6 +632,249 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
                 return performanceMetrics; // Or you might need to further aggregate/average this data
             }
 
+            public async Task<TaxReportDto> GetTaxReportAsync(Guid propertyId, int taxYear)
+            {
+                // Validate property exists
+                var property = await _context.Properties.FindAsync(propertyId);
+                if (property == null)
+                    throw new Exception($"Property with ID {propertyId} not found");
+
+                // Define the start and end dates for the tax year
+                var startDate = new DateTime(taxYear, 1, 1);
+                var endDate = new DateTime(taxYear, 12, 31);
+
+                // Get all transactions for the property in the tax year
+                var transactions = await _context.Transactions
+                    .Include(t => t.Category)
+                    .Where(t => t.PropertyId == propertyId && 
+                            t.Date >= startDate && 
+                            t.Date <= endDate)
+                    .ToListAsync();
+
+                var incomeTransactions = transactions.Where(t => t.Type == TransactionType.Income).ToList();
+                var expenseTransactions = transactions.Where(t => t.Type == TransactionType.Expense).ToList();
+
+                // Calculate totals
+                var totalIncome = incomeTransactions.Sum(t => t.Amount);
+                var totalDeductibleExpenses = expenseTransactions
+                    .Where(t => t.IsTaxDeductible)
+                    .Sum(t => t.Amount);
+                var taxableIncome = totalIncome - totalDeductibleExpenses;
+
+                // Group transactions by category
+                var incomeCategories = incomeTransactions
+                    .GroupBy(t => t.CategoryId)
+                    .Select(g => new TaxCategoryDto
+                    {
+                        CategoryId = g.Key,
+                        CategoryName = g.First().Category.Name,
+                        Amount = g.Sum(t => t.Amount),
+                        IsTaxDeductible = false // Income is generally not tax deductible
+                    })
+                    .ToList();
+
+                var expenseCategories = expenseTransactions
+                    .GroupBy(t => t.CategoryId)
+                    .Select(g => new TaxCategoryDto
+                    {
+                        CategoryId = g.Key,
+                        CategoryName = g.First().Category.Name,
+                        Amount = g.Sum(t => t.Amount),
+                        IsTaxDeductible = g.First().IsTaxDeductible
+                    })
+                    .ToList();
+
+                return new TaxReportDto
+                {
+                    PropertyId = propertyId,
+                    PropertyName = property.Name,
+                    TaxYear = taxYear,
+                    TotalIncome = totalIncome,
+                    TotalDeductibleExpenses = totalDeductibleExpenses,
+                    TaxableIncome = taxableIncome,
+                    IncomeCategories = incomeCategories,
+                    ExpenseCategories = expenseCategories
+                };
+            }
+
+            public async Task<IEnumerable<TaxReportDto>> GetAllPropertiesTaxReportAsync(Guid userId, int taxYear)
+            {
+                // Get all properties owned by the user
+                var properties = await _context.Properties
+                    .Where(p => p.OwnerId == userId)
+                    .ToListAsync();
+
+                var reports = new List<TaxReportDto>();
+
+                // Generate tax report for each property
+                foreach (var property in properties)
+                {
+                    var report = await GetTaxReportAsync(property.Id, taxYear);
+                    reports.Add(report);
+                }
+
+                return reports;
+            }
+
+            public async Task<MultiYearTaxComparisonDto> GetMultiYearTaxComparisonAsync(Guid propertyId, int startYear, int endYear)
+            {
+                // Validate property exists
+                var property = await _context.Properties.FindAsync(propertyId);
+                if (property == null)
+                    throw new Exception($"Property with ID {propertyId} not found");
+
+                var yearlyData = new List<YearlyTaxDataDto>();
+                
+                // Get data for each year
+                for (int year = startYear; year <= endYear; year++)
+                {
+                    var taxReport = await GetTaxReportAsync(propertyId, year);
+                    
+                    // Calculate year-over-year changes if not the first year
+                    decimal yoyIncomeChange = 0;
+                    decimal yoyExpenseChange = 0;
+                    
+                    if (yearlyData.Count > 0)
+                    {
+                        var previousYear = yearlyData.Last();
+                        yoyIncomeChange = previousYear.TotalIncome > 0 
+                            ? ((taxReport.TotalIncome - previousYear.TotalIncome) / previousYear.TotalIncome) * 100
+                            : 0;
+                            
+                        yoyExpenseChange = previousYear.TotalDeductibleExpenses > 0 
+                            ? ((taxReport.TotalDeductibleExpenses - previousYear.TotalDeductibleExpenses) / previousYear.TotalDeductibleExpenses) * 100
+                            : 0;
+                    }
+                    
+                    yearlyData.Add(new YearlyTaxDataDto
+                    {
+                        Year = year,
+                        TotalIncome = taxReport.TotalIncome,
+                        TotalDeductibleExpenses = taxReport.TotalDeductibleExpenses,
+                        TaxableIncome = taxReport.TaxableIncome,
+                        YearOverYearIncomeChange = yoyIncomeChange,
+                        YearOverYearExpenseChange = yoyExpenseChange
+                    });
+                }
+                
+                return new MultiYearTaxComparisonDto
+                {
+                    PropertyId = propertyId,
+                    PropertyName = property.Name,
+                    YearlyData = yearlyData
+                };
+            }
+
+            public async Task<TaxEstimationDto> GetTaxEstimationAsync(TaxEstimationRequestDto request)
+            {
+                // Get the property
+                var property = await _context.Properties.FindAsync(request.PropertyId);
+                if (property == null)
+                    throw new Exception($"Property with ID {request.PropertyId} not found");
+
+                // Get the tax report for the requested year
+                var taxReport = await GetTaxReportAsync(request.PropertyId, request.TaxYear);
+                
+                // Calculate estimated taxable income with additional income and deductions
+                var estimatedTaxableIncome = taxReport.TaxableIncome + request.AdditionalIncome - request.AdditionalDeductions;
+                
+                // Calculate estimated tax liability
+                var estimatedTaxLiability = estimatedTaxableIncome * (request.TaxRate / 100);
+                
+                // Calculate projected savings (difference between current tax and estimated tax)
+                var currentTaxLiability = taxReport.TaxableIncome * (request.TaxRate / 100);
+                var projectedSavings = currentTaxLiability - estimatedTaxLiability;
+                
+                return new TaxEstimationDto
+                {
+                    PropertyId = request.PropertyId,
+                    PropertyName = property.Name,
+                    TaxYear = request.TaxYear,
+                    CurrentTaxableIncome = taxReport.TaxableIncome,
+                    EstimatedTaxableIncome = estimatedTaxableIncome,
+                    TaxRate = request.TaxRate,
+                    EstimatedTaxLiability = estimatedTaxLiability,
+                    AdditionalIncome = request.AdditionalIncome,
+                    AdditionalDeductions = request.AdditionalDeductions,
+                    ProjectedSavings = projectedSavings
+                };
+            }
+
+            public async Task<TaxBracketCalculationDto> CalculateTaxWithBracketsAsync(TaxBracketCalculationRequestDto request)
+            {
+                // Get the property
+                var property = await _context.Properties.FindAsync(request.PropertyId);
+                if (property == null)
+                    throw new Exception($"Property with ID {request.PropertyId} not found");
+
+                // Get the tax report for the requested year
+                var taxReport = await GetTaxReportAsync(request.PropertyId, request.TaxYear);
+                
+                // Calculate taxable income with additional income and deductions
+                var taxableIncome = taxReport.TaxableIncome + request.AdditionalIncome - request.AdditionalDeductions;
+                
+                // Ensure brackets are ordered by LowerBound
+                var orderedBrackets = request.Brackets.OrderBy(b => b.LowerBound).ToList();
+                
+                decimal totalTax = 0;
+                var breakdowns = new List<TaxBracketBreakdownDto>();
+                
+                // Calculate tax for each bracket
+                for (int i = 0; i < orderedBrackets.Count; i++)
+                {
+                    var bracket = orderedBrackets[i];
+                    decimal upperLimit = bracket.UpperBound;
+                    
+                    // If this is the last bracket or income is below the next bracket's lower bound
+                    if (i == orderedBrackets.Count - 1 || taxableIncome <= bracket.UpperBound)
+                    {
+                        upperLimit = Math.Min(bracket.UpperBound, taxableIncome);
+                    }
+                    
+                    // Calculate income in this bracket
+                    decimal incomeInBracket = 0;
+                    
+                    if (taxableIncome > bracket.LowerBound)
+                    {
+                        incomeInBracket = Math.Min(upperLimit - bracket.LowerBound, taxableIncome - bracket.LowerBound);
+                    }
+                    
+                    // Calculate tax for this bracket
+                    decimal taxForBracket = incomeInBracket * (bracket.Rate / 100);
+                    totalTax += taxForBracket;
+                    
+                    // Add breakdown
+                    breakdowns.Add(new TaxBracketBreakdownDto
+                    {
+                        LowerBound = bracket.LowerBound,
+                        UpperBound = bracket.UpperBound,
+                        Rate = bracket.Rate,
+                        IncomeInBracket = incomeInBracket,
+                        TaxForBracket = taxForBracket
+                    });
+                    
+                    // If we've accounted for all income, break out of the loop
+                    if (taxableIncome <= bracket.UpperBound)
+                    {
+                        break;
+                    }
+                }
+                
+                // Calculate effective tax rate
+                decimal effectiveTaxRate = taxableIncome > 0 ? (totalTax / taxableIncome) * 100 : 0;
+                
+                return new TaxBracketCalculationDto
+                {
+                    PropertyId = property.Id,
+                    PropertyName = property.Name,
+                    TaxYear = request.TaxYear,
+                    TaxableIncome = taxableIncome,
+                    EstimatedTaxLiability = totalTax,
+                    EffectiveTaxRate = effectiveTaxRate,
+                    BracketBreakdown = breakdowns
+                };
+            }
+
            #endregion
        }
    }

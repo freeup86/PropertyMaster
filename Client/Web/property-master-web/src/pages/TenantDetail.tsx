@@ -24,7 +24,7 @@ import { useNavigate, useParams, Link as RouterLink } from 'react-router-dom';
 import tenantService, { Tenant, UpdateTenantRequest } from '../services/tenantService';
 import TenantForm from '../components/TenantForm';
 
-const TenantDetail: React.FC = () => {
+  const TenantDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [tenant, setTenant] = useState<Tenant | null>(null);

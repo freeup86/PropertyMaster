@@ -33,6 +33,7 @@ import DebugUserInfo from './pages/DebugUserInfo';
 import React, { useEffect } from 'react';
 import { authService } from './services/authService';
 import UserPromotionForm from './components/Admin/UserPromotionForm';
+import TaxReports from './pages/TaxReports';
 
 const UserInfoDebug: React.FC = () => {
   useEffect(() => {
@@ -80,6 +81,7 @@ const App: React.FC = () => {
               <Route path="/properties/new" element={<AddProperty />} />
               <Route path="/properties/:id" element={<PropertyDetail />} />
               <Route path="/properties/:id/edit" element={<EditProperty />} />
+              <Route path="/tax-reports" element={<TaxReports />} />
             </Route>
 
             {/* Property Manager, Owner, and Admin Routes */}

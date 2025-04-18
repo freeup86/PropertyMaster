@@ -26,10 +26,17 @@ namespace PropertyMaster.PropertyManagement.API
         public DbSet<Document> Documents { get; set; }
         public DbSet<MaintenanceRequest> MaintenanceRequests { get; set; }
         public DbSet<NotificationSettings> NotificationSettings { get; set; }
+        public DbSet<UnitImage> UnitImages { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+             modelBuilder.Entity<UnitImage>()
+                .HasOne(ui => ui.Unit)
+                .WithMany(u => u.Images)
+                .HasForeignKey(ui => ui.UnitId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Configure relationships
             modelBuilder.Entity<Property>()

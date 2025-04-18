@@ -15,6 +15,10 @@ using PropertyMaster.Models.Entities;
 using System;
 using PropertyMaster.PropertyManagement.API.Services.BackgroundServices;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,6 +30,38 @@ builder.Services.AddCors(options =>
             .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader());
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
+});
+
+// Increase Kestrel server limits
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(10);
+    serverOptions.Limits.RequestHeadersTimeout = TimeSpan.FromMinutes(10);
+    serverOptions.Limits.MinRequestBodyDataRate = new MinDataRate(bytesPerSecond: 100, gracePeriod: TimeSpan.FromSeconds(10));
+});
+
+builder.Services.Configure<IISServerOptions>(options =>
+{
+    options.MaxRequestBodySize = long.MaxValue;
+});
+
+builder.Services.Configure<KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = long.MaxValue;
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.ValueLengthLimit = int.MaxValue;
+    options.MultipartBodyLengthLimit = long.MaxValue;
+    options.MultipartHeadersLengthLimit = int.MaxValue;
 });
 
 // Add services to the container
@@ -112,6 +148,7 @@ builder.Services.AddHostedService<NotificationBackgroundService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddHostedService<NotificationBackgroundService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
+builder.Services.AddScoped<ITaxDocumentService, TaxDocumentService>();
 
 // Configure AutoMapper
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
@@ -133,9 +170,33 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
+app.UseExceptionHandler(exceptionHandlerApp =>
+{
+    exceptionHandlerApp.Run(async context =>
+    {
+        context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+        context.Response.ContentType = "application/json";
+        
+        var exceptionHandlerPathFeature = context.Features.Get<IExceptionHandlerPathFeature>();
+        var exception = exceptionHandlerPathFeature?.Error;
+        
+        await context.Response.WriteAsJsonAsync(new 
+        {
+            error = exception?.Message ?? "An error occurred",
+            stackTrace = app.Environment.IsDevelopment() ? exception?.StackTrace : null
+        });
+    });
+});
+
 // Use CORS
+app.UseCors(builder => builder
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader()
+);
 app.UseCors("AllowReactApp");
 
 // Comment out HTTPS redirection for development
@@ -143,6 +204,14 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+// Configure static files
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(Directory.GetCurrentDirectory(), "wwwroot")),
+    RequestPath = "/uploads"
+});
 
 app.MapControllers();
 

@@ -18,7 +18,8 @@ import {
 import { 
   Edit as EditIcon, 
   Delete as DeleteIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Image as ImageIcon
 } from '@mui/icons-material';
 import unitService, { Unit } from '../services/unitService';
 
@@ -27,13 +28,15 @@ interface UnitListProps {
   onAddUnit: () => void;
   onEditUnit: (unitId: string) => void;
   onDeleteUnit: (unitId: string) => void;
+  onManageImages: (unitId: string) => void;
 }
 
 const UnitList: React.FC<UnitListProps> = ({
   propertyId,
   onAddUnit,
   onEditUnit,
-  onDeleteUnit
+  onDeleteUnit,
+  onManageImages // Add this to the destructured props
 }) => {
   const [units, setUnits] = useState<Unit[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -121,6 +124,7 @@ const UnitList: React.FC<UnitListProps> = ({
                     <IconButton 
                       size="small" 
                       onClick={() => onEditUnit(unit.id)}
+                      title="Edit Unit"
                     >
                       <EditIcon fontSize="small" />
                     </IconButton>
@@ -128,8 +132,17 @@ const UnitList: React.FC<UnitListProps> = ({
                       size="small" 
                       color="error"
                       onClick={() => onDeleteUnit(unit.id)}
+                      title="Delete Unit"
                     >
                       <DeleteIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton 
+                      size="small" 
+                      color="primary"
+                      onClick={() => onManageImages(unit.id)}
+                      title="Manage Images"
+                    >
+                      <ImageIcon fontSize="small" />
                     </IconButton>
                   </TableCell>
                 </TableRow>

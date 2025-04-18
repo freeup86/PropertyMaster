@@ -23,7 +23,10 @@ namespace PropertyMaster.Models.Entities
         
         public bool IsOccupied { get; set; }
 
-        // Navigation properties
+        // New navigation property for images
+        public virtual ICollection<UnitImage> Images { get; set; }
+
+        // Navigation property
         public virtual Property Property { get; set; }
     }
 }

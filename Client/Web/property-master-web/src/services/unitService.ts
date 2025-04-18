@@ -30,6 +30,19 @@ export interface UpdateUnitRequest {
   isOccupied?: boolean;
 }
 
+export interface UnitDto {
+  id: string;
+  propertyId: string;
+  unitNumber: string;
+  size: number;
+  bedrooms: number;
+  bathrooms: number;
+  marketRent: number;
+  isOccupied: boolean;
+  propertyName: string;
+  imageUrls: string[]; 
+}
+
 const unitService = {
   getUnits: async (propertyId: string): Promise<Unit[]> => {
     const response = await api.get(`/properties/${propertyId}/units`);

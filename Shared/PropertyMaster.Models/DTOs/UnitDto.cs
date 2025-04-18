@@ -13,5 +13,6 @@ namespace PropertyMaster.Models.DTOs
         public decimal MarketRent { get; set; }
         public bool IsOccupied { get; set; }
         public string PropertyName { get; set; }
+        public string[] ImageUrls { get; set; }
     }
 }

@@ -547,6 +547,11 @@ namespace PropertyMaster.PropertyManagement.API.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("ImagePaths")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<bool>("IsOccupied")
                         .HasColumnType("bit");
 
