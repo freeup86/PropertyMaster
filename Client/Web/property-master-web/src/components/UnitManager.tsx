@@ -160,7 +160,7 @@ const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
         fullWidth
       >
         <DialogTitle>
-          Manage Unit Images: {selectedUnit?.unitNumber}
+          Manage Unit Images for Unit: {selectedUnit?.unitNumber}
         </DialogTitle>
         <DialogContent>
           {error && (

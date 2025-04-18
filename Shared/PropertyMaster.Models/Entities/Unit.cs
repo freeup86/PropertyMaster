@@ -28,5 +28,7 @@ namespace PropertyMaster.Models.Entities
 
         // Navigation property
         public virtual Property Property { get; set; }
+
+        public string? ImagePaths { get; set; }
     }
 }

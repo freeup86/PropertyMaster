@@ -1,6 +1,8 @@
+// src/hooks/useUnitImages.ts
 import { useState } from 'react';
 import unitImageService from '../services/unitImageService';
 
+// Change from default export to named export
 export const useUnitImages = (propertyId: string, unitId: string) => {
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -10,7 +12,8 @@ export const useUnitImages = (propertyId: string, unitId: string) => {
     try {
       setLoading(true);
       const response = await unitImageService.getUnitImages(propertyId, unitId);
-      setImages(response.imageUrls);
+      const imageUrls = response.map(img => `data:${img.contentType};base64,${img.base64ImageData}`);
+      setImages(imageUrls);
       setError(null);
     } catch (err) {
       setError('Failed to fetch unit images');
@@ -24,9 +27,10 @@ export const useUnitImages = (propertyId: string, unitId: string) => {
     try {
       setLoading(true);
       const response = await unitImageService.uploadUnitImages(propertyId, unitId, files);
-      setImages(response.imageUrls);
+      const imageUrls = response.map(img => `data:${img.contentType};base64,${img.base64ImageData}`);
+      setImages(imageUrls);
       setError(null);
-      return response.imageUrls;
+      return imageUrls;
     } catch (err) {
       setError('Failed to upload images');
       return [];
