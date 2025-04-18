@@ -1,5 +1,6 @@
 // Shared/PropertyMaster.Models/DTOs/DocumentDto.cs
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace PropertyMaster.Models.DTOs
 {
@@ -23,15 +24,25 @@ namespace PropertyMaster.Models.DTOs
     
     public class CreateDocumentDto
     {
+        [Required]
         public Guid PropertyId { get; set; }
+        
         public Guid? UnitId { get; set; }
+        
         public Guid? TenantId { get; set; }
-        public string DocumentType { get; set; }
-        public string Description { get; set; }
+        
+        // Add default value
+        [MaxLength(100)]
+        public string DocumentType { get; set; } = "Other";
+        
+        // Add default value
+        [MaxLength(500)]
+        public string Description { get; set; } = "No description provided";
+        
+        // Add the missing ExpirationDate property
         public DateTime? ExpirationDate { get; set; }
-        // File data will be sent separately in multipart form data
     }
-    
+        
     public class UpdateDocumentDto
     {
         public string DocumentType { get; set; }

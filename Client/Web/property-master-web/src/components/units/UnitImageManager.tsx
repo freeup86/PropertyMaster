@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Typography, Button, List, ListItem, CircularProgress, Alert } from '@mui/material';
+import { Box, Typography, Button, CircularProgress, Alert } from '@mui/material';
 import { CloudUpload as UploadIcon } from '@mui/icons-material';
 import { useUnitImages } from '../../hooks/useUnitImages';
 
@@ -76,35 +76,29 @@ const UnitImageManager: React.FC<UnitImageManagerProps> = ({ propertyId, unitId 
           <CircularProgress />
         </Box>
       ) : (
-        <Box>
-          {images.length === 0 ? (
-            <Alert severity="info">No images available for this unit</Alert>
-          ) : (
-            <List>
-              {images.map((imageUrl, index) => (
-                <ListItem key={index} divider>
-                  <Box width="100%" display="flex" justifyContent="space-between" alignItems="center">
-                    <Typography>Image {index + 1}</Typography>
-                    <Box display="flex" gap={2}>
-                      <Button 
-                        variant="outlined" 
-                        onClick={() => window.open(imageUrl, '_blank')}
-                      >
-                        View
-                      </Button>
-                      <Button 
-                        variant="contained" 
-                        color="error" 
-                        onClick={() => handleDeleteImage(imageUrl)}
-                      >
-                        Delete
-                      </Button>
-                    </Box>
-                  </Box>
-                </ListItem>
-              ))}
-            </List>
-          )}
+        <Box display="flex" flexWrap="wrap" gap={2}>
+          {images.map((imageUrl, index) => (
+            <Box key={index} position="relative" width={200} height={200} overflow="hidden">
+              <img 
+                src={imageUrl} 
+                alt={`Image ${index + 1}`} 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              <Button
+                variant="contained"
+                color="error"
+                size="small"
+                onClick={() => handleDeleteImage(imageUrl)}
+                style={{
+                  position: 'absolute',
+                  top: '8px',
+                  right: '8px',
+                }}
+              >
+                Delete
+              </Button>
+            </Box>
+          ))}
         </Box>
       )}
     </Box>

@@ -1,125 +1,179 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
+  Container, 
+  Typography, 
+  Button, 
   Dialog, 
   DialogTitle, 
   DialogContent, 
-  Paper, 
+  DialogActions, 
+  TextField, 
   Box,
   Alert,
-  DialogActions,
-  Button,
-  DialogContentText,
-  Typography
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
-import UnitList from './UnitList';
-import UnitForm from './UnitForm';
-import UnitImageUploader from '../components/units/UnitImageUploader';
+import { Add as AddIcon } from '@mui/icons-material';
+import UnitList from '../components/UnitList';
+import ImageManager from '../components/ImageManager';
 import unitService, { Unit, CreateUnitRequest, UpdateUnitRequest } from '../services/unitService';
 
+// Define props interface
 interface UnitManagerProps {
   propertyId: string;
 }
 
-enum DialogMode {
-  NONE,
-  ADD,
-  EDIT,
-  DELETE,
-  IMAGES
-}
-
 const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
-  const [dialogMode, setDialogMode] = useState<DialogMode>(DialogMode.NONE);
+  // State for managing units and modals
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+  const [isAddEditModalOpen, setIsAddEditModalOpen] = useState(false);
+  const [isImageManagerOpen, setIsImageManagerOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
 
+  // Form state for add/edit unit
+  const [unitForm, setUnitForm] = useState<CreateUnitRequest | UpdateUnitRequest>({
+    unitNumber: '',
+    size: 0,
+    bedrooms: 0,
+    bathrooms: 0,
+    marketRent: 0,
+    isOccupied: false
+  });
+
+  // Open modal for adding a new unit
   const handleAddUnit = () => {
-    setDialogMode(DialogMode.ADD);
+    setSelectedUnit(null);
+    setUnitForm({
+      unitNumber: '',
+      size: 0,
+      bedrooms: 0,
+      bathrooms: 0,
+      marketRent: 0,
+      isOccupied: false
+    });
+    setIsAddEditModalOpen(true);
   };
 
+  // Open modal for editing an existing unit
   const handleEditUnit = async (unitId: string) => {
     try {
       const unit = await unitService.getUnit(propertyId, unitId);
       setSelectedUnit(unit);
-      setDialogMode(DialogMode.EDIT);
+      setUnitForm({
+        unitNumber: unit.unitNumber,
+        size: unit.size,
+        bedrooms: unit.bedrooms,
+        bathrooms: unit.bathrooms,
+        marketRent: unit.marketRent,
+        isOccupied: unit.isOccupied
+      });
+      setIsAddEditModalOpen(true);
     } catch (err) {
-      setError('Failed to load unit information. Please try again.');
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'Failed to load unit details';
+      setError(errorMessage);
     }
   };
 
-  const handleManageImages = async (unitId: string) => {
-    try {
-      const unit = await unitService.getUnit(propertyId, unitId);
-      setSelectedUnit(unit);
-      setDialogMode(DialogMode.IMAGES);
-    } catch (err) {
-      setError('Failed to load unit information. Please try again.');
-    }
+  // Handle form input changes
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setUnitForm(prev => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : 
+              type === 'number' ? Number(value) : value
+    }));
   };
 
-  const handleDeleteUnit = (unitId: string) => {
-    setSelectedUnit((prev) => ({ ...prev, id: unitId } as Unit));
-    setDialogMode(DialogMode.DELETE);
-  };
-
-  const handleCreateUnit = async (values: CreateUnitRequest) => {
-    try {
-      await unitService.createUnit(propertyId, values);
-      setDialogMode(DialogMode.NONE);
-      setRefreshTrigger(prev => prev + 1);
-    } catch (err) {
-      setError('Failed to create unit. Please try again.');
-    }
-  };
-
-  const handleUpdateUnit = async (values: UpdateUnitRequest) => {
+  // Submit unit (add or edit)
+  const handleSubmitUnit = async () => {
     try {
       if (selectedUnit) {
-        await unitService.updateUnit(propertyId, selectedUnit.id, values);
-        setDialogMode(DialogMode.NONE);
-        setSelectedUnit(null);
-        setRefreshTrigger(prev => prev + 1);
+        // Editing existing unit
+        await unitService.updateUnit(
+          propertyId, 
+          selectedUnit.id, 
+          unitForm as UpdateUnitRequest
+        );
+      } else {
+        // Adding new unit
+        await unitService.createUnit(
+          propertyId, 
+          unitForm as CreateUnitRequest
+        );
       }
+
+      // Close modal and reset form
+      setIsAddEditModalOpen(false);
+      setSelectedUnit(null);
+      setError(null);
     } catch (err) {
-      setError('Failed to update unit. Please try again.');
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'Failed to save unit';
+      setError(errorMessage);
     }
   };
 
-  const handleConfirmDelete = async () => {
+  // Handle unit deletion
+  const handleDeleteUnit = async (unitId: string) => {
     try {
-      if (selectedUnit) {
-        await unitService.deleteUnit(propertyId, selectedUnit.id);
-        setDialogMode(DialogMode.NONE);
-        setSelectedUnit(null);
-        setRefreshTrigger(prev => prev + 1);
-      }
+      await unitService.deleteUnit(propertyId, unitId);
     } catch (err) {
-      setError('Failed to delete unit. Please try again.');
+      const errorMessage = err instanceof Error 
+        ? err.message 
+        : 'Failed to delete unit';
+      setError(errorMessage);
     }
   };
 
-  const handleCloseDialog = () => {
-    setDialogMode(DialogMode.NONE);
+  // Open image manager for a specific unit
+  const handleManageImages = (unitId: string) => {
+    setSelectedUnit(prev => prev && prev.id === unitId ? prev : { id: unitId } as Unit);
+    setIsImageManagerOpen(true);
+  };
+
+  // Close image manager
+  const handleCloseImageManager = () => {
+    setIsImageManagerOpen(false);
+    setSelectedUnit(null);
+  };
+
+  // Close add/edit modal
+  const handleCloseAddEditModal = () => {
+    setIsAddEditModalOpen(false);
     setSelectedUnit(null);
     setError(null);
   };
 
-  const handleFormSubmit = (values: CreateUnitRequest | UpdateUnitRequest) => {
-    if (dialogMode === DialogMode.ADD) {
-      handleCreateUnit(values as CreateUnitRequest);
-    } else {
-      handleUpdateUnit(values as UpdateUnitRequest);
-    }
-  };
-
-  // Force refresh of unit list when units are modified
-  const key = `property-${propertyId}-units-${refreshTrigger}`;
-
   return (
-    <div>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Units Management
+      </Typography>
+
+      {error && (
+        <Alert 
+          severity="error" 
+          onClose={() => setError(null)}
+          sx={{ mb: 2 }}
+        >
+          {error}
+        </Alert>
+      )}
+
+      <Button 
+        variant="contained" 
+        color="primary" 
+        startIcon={<AddIcon />}
+        onClick={handleAddUnit}
+        sx={{ mb: 2 }}
+      >
+        Add New Unit
+      </Button>
+
       <UnitList 
-        key={key}
         propertyId={propertyId}
         onAddUnit={handleAddUnit}
         onEditUnit={handleEditUnit}
@@ -127,88 +181,114 @@ const UnitManager: React.FC<UnitManagerProps> = ({ propertyId }) => {
         onManageImages={handleManageImages}
       />
 
-      {/* Add/Edit Unit Dialog */}
+      {/* Add/Edit Unit Modal */}
       <Dialog 
-        open={dialogMode === DialogMode.ADD || dialogMode === DialogMode.EDIT} 
-        onClose={handleCloseDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>
-          {dialogMode === DialogMode.ADD ? 'Add New Unit' : 'Edit Unit'}
-        </DialogTitle>
-        <DialogContent>
-          {error && (
-            <Box mb={2}>
-              <Alert severity="error">{error}</Alert>
-            </Box>
-          )}
-          <UnitForm 
-            initialValues={selectedUnit || undefined}
-            onSubmit={handleFormSubmit}
-            onCancel={handleCloseDialog}
-            isEditing={dialogMode === DialogMode.EDIT}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Image Management Dialog */}
-      <Dialog 
-        open={dialogMode === DialogMode.IMAGES} 
-        onClose={handleCloseDialog}
+        open={isAddEditModalOpen} 
+        onClose={handleCloseAddEditModal}
         maxWidth="md"
         fullWidth
       >
         <DialogTitle>
-          Manage Unit Images for Unit: {selectedUnit?.unitNumber}
+          {selectedUnit ? 'Edit Unit' : 'Add New Unit'}
         </DialogTitle>
         <DialogContent>
-          {error && (
-            <Box mb={2}>
-              <Alert severity="error">{error}</Alert>
-            </Box>
-          )}
-          {selectedUnit && (
-            <Box>
-              <UnitImageUploader 
-                propertyId={propertyId}
-                unitId={selectedUnit.id}
-                onImagesUploaded={() => {
-                  // Optional: add any additional logic after image upload
-                  setRefreshTrigger(prev => prev + 1);
-                }}
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: 2, 
+            pt: 2 
+          }}>
+            <TextField
+              fullWidth
+              label="Unit Number"
+              name="unitNumber"
+              value={unitForm.unitNumber}
+              onChange={handleInputChange}
+              required
+              variant="outlined"
+            />
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              gap: 2 
+            }}>
+              <TextField
+                fullWidth
+                label="Size (sq ft)"
+                name="size"
+                type="number"
+                value={unitForm.size}
+                onChange={handleInputChange}
+                variant="outlined"
+              />
+              <TextField
+                fullWidth
+                label="Market Rent"
+                name="marketRent"
+                type="number"
+                value={unitForm.marketRent}
+                onChange={handleInputChange}
+                variant="outlined"
               />
             </Box>
-          )}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'space-between', 
+              gap: 2 
+            }}>
+              <TextField
+                fullWidth
+                label="Bedrooms"
+                name="bedrooms"
+                type="number"
+                value={unitForm.bedrooms}
+                onChange={handleInputChange}
+                variant="outlined"
+              />
+              <TextField
+                fullWidth
+                label="Bathrooms"
+                name="bathrooms"
+                type="number"
+                value={unitForm.bathrooms}
+                onChange={handleInputChange}
+                variant="outlined"
+              />
+            </Box>
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={unitForm.isOccupied}
+                  onChange={handleInputChange}
+                  name="isOccupied"
+                />
+              }
+              label="Is Occupied"
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
-            Close
+          <Button onClick={handleCloseAddEditModal}>Cancel</Button>
+          <Button 
+            onClick={handleSubmitUnit} 
+            color="primary" 
+            variant="contained"
+          >
+            {selectedUnit ? 'Update' : 'Add'} Unit
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
-      <Dialog
-        open={dialogMode === DialogMode.DELETE}
-        onClose={handleCloseDialog}
-      >
-        <DialogTitle>Delete Unit</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete this unit? This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirmDelete} color="error" autoFocus>
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+      {/* Image Manager Modal */}
+      {selectedUnit && (
+        <ImageManager 
+          propertyId={propertyId}
+          unitId={selectedUnit.id}
+          open={isImageManagerOpen}
+          onClose={handleCloseImageManager}
+        />
+      )}
+    </Container>
   );
 };
 

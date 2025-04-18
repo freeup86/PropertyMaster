@@ -91,71 +91,83 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
 
         public async Task<DocumentDto> UploadDocumentAsync(CreateDocumentDto documentDto, IFormFile file)
         {
-            // Validate property exists
-            var property = await _context.Properties.FindAsync(documentDto.PropertyId);
-            if (property == null)
-                throw new Exception($"Property with ID {documentDto.PropertyId} not found");
-
-            // Validate unit belongs to property if specified
-            if (documentDto.UnitId.HasValue)
+            try
             {
-                var unit = await _context.Units
-                    .FirstOrDefaultAsync(u => u.Id == documentDto.UnitId.Value && u.PropertyId == documentDto.PropertyId);
+                // Set default values if null
+                documentDto.DocumentType = documentDto.DocumentType ?? "Other";
+                documentDto.Description = documentDto.Description ?? "No description provided";
                 
-                if (unit == null)
-                    throw new Exception($"Unit with ID {documentDto.UnitId} not found for the specified property");
+                // Validate property exists
+                var property = await _context.Properties.FindAsync(documentDto.PropertyId);
+                if (property == null)
+                    throw new Exception($"Property with ID {documentDto.PropertyId} not found");
+
+                // Validate unit belongs to property if specified
+                if (documentDto.UnitId.HasValue)
+                {
+                    var unit = await _context.Units
+                        .FirstOrDefaultAsync(u => u.Id == documentDto.UnitId.Value && u.PropertyId == documentDto.PropertyId);
+                    
+                    if (unit == null)
+                        throw new Exception($"Unit with ID {documentDto.UnitId} not found for the specified property");
+                }
+
+                // Validate tenant exists if specified
+                if (documentDto.TenantId.HasValue)
+                {
+                    var tenant = await _context.Tenants.FindAsync(documentDto.TenantId.Value);
+                    if (tenant == null)
+                        throw new Exception($"Tenant with ID {documentDto.TenantId} not found");
+                }
+
+                // Generate unique filename
+                var fileExtension = Path.GetExtension(file.FileName);
+                var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(_uploadsFolder, uniqueFileName);
+
+                // Save file to disk
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // Create document record
+                var document = new Document
+                {
+                    Id = Guid.NewGuid(),
+                    PropertyId = documentDto.PropertyId,
+                    UnitId = documentDto.UnitId,
+                    TenantId = documentDto.TenantId,
+                    FileName = file.FileName,
+                    ContentType = file.ContentType,
+                    FileSize = file.Length,
+                    DocumentType = documentDto.DocumentType,
+                    Description = documentDto.Description,
+                    ExpirationDate = documentDto.ExpirationDate,
+                    FilePath = uniqueFileName, // Store only the filename, not the full path
+                    CreatedDate = DateTime.UtcNow,
+                    ModifiedDate = DateTime.UtcNow
+                };
+
+                await _context.Documents.AddAsync(document);
+                await _context.SaveChangesAsync();
+
+                // Load navigation properties for mapping
+                _context.Entry(document).Reference(d => d.Property).Load();
+                
+                if (document.UnitId.HasValue)
+                    _context.Entry(document).Reference(d => d.Unit).Load();
+                
+                if (document.TenantId.HasValue)
+                    _context.Entry(document).Reference(d => d.Tenant).Load();
+
+                return _mapper.Map<DocumentDto>(document);
             }
-
-            // Validate tenant exists if specified
-            if (documentDto.TenantId.HasValue)
+            catch (Exception ex)
             {
-                var tenant = await _context.Tenants.FindAsync(documentDto.TenantId.Value);
-                if (tenant == null)
-                    throw new Exception($"Tenant with ID {documentDto.TenantId} not found");
+                _logger.LogError(ex, "Error in UploadDocumentAsync: {Message}", ex.Message);
+                throw;
             }
-
-            // Generate unique filename
-            var fileExtension = Path.GetExtension(file.FileName);
-            var uniqueFileName = $"{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(_uploadsFolder, uniqueFileName);
-
-            // Save file to disk
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            // Create document record
-            var document = new Document
-            {
-                Id = Guid.NewGuid(),
-                PropertyId = documentDto.PropertyId,
-                UnitId = documentDto.UnitId,
-                TenantId = documentDto.TenantId,
-                FileName = file.FileName,
-                ContentType = file.ContentType,
-                FileSize = file.Length,
-                DocumentType = documentDto.DocumentType,
-                Description = documentDto.Description,
-                ExpirationDate = documentDto.ExpirationDate,
-                FilePath = uniqueFileName, // Store only the filename, not the full path
-                CreatedDate = DateTime.UtcNow,
-                ModifiedDate = DateTime.UtcNow
-            };
-
-            await _context.Documents.AddAsync(document);
-            await _context.SaveChangesAsync();
-
-            // Load navigation properties for mapping
-            _context.Entry(document).Reference(d => d.Property).Load();
-            
-            if (document.UnitId.HasValue)
-                _context.Entry(document).Reference(d => d.Unit).Load();
-            
-            if (document.TenantId.HasValue)
-                _context.Entry(document).Reference(d => d.Tenant).Load();
-
-            return _mapper.Map<DocumentDto>(document);
         }
 
         public async Task<DocumentDto> UpdateDocumentAsync(Guid documentId, UpdateDocumentDto documentDto)

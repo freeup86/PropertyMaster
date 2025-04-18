@@ -27,9 +27,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp",
         builder => builder
-            .AllowAnyOrigin()
+            .WithOrigins("http://localhost:3000")  // Your React app's URL
             .AllowAnyMethod()
-            .AllowAnyHeader());
+            .AllowAnyHeader()
+            .AllowCredentials()
+    );
 });
 
 builder.Services.Configure<FormOptions>(options =>

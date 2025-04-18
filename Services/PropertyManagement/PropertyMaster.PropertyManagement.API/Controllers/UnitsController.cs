@@ -148,29 +148,43 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
             }
         }
             
-        [HttpDelete("{id}/images")]
-        [ProducesResponseType(200)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(500)]
+        [HttpDelete("{unitId}/images")]
         public async Task<IActionResult> DeleteUnitImage(
             Guid propertyId, 
-            Guid id, 
-            [FromQuery] string imageUrl)
+            Guid unitId, 
+            [FromBody] DeleteImageRequest request)
         {
-            try
+            try 
             {
-                var result = await _unitService.DeleteUnitImageAsync(id, propertyId, imageUrl);
+                if (request == null || string.IsNullOrEmpty(request.Base64Image))
+                {
+                    return BadRequest("Invalid image data");
+                }
+
+                // Reconstruct the full image URL
+                string imageUrl = $"data:{request.ContentType};base64,{request.Base64Image}";
+
+                _logger.LogInformation($"Delete Image Request: PropertyId={propertyId}, UnitId={unitId}, ImageUrl={imageUrl}");
+
+                var result = await _unitService.DeleteUnitImageAsync(unitId, propertyId, imageUrl);
                 
-                if (!result)
-                    return NotFound("Image not found");
+                if (result)
+                    return Ok();
                 
-                return Ok();
+                return NotFound();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting image for unit {UnitId}", id);
+                _logger.LogError(ex, "Error deleting unit image");
                 return StatusCode(500, "An error occurred while deleting the image");
             }
+        }
+
+        // DTO for image deletion
+        public class DeleteImageRequest
+        {
+            public string ContentType { get; set; }
+            public string Base64Image { get; set; }
         }
     }
 }

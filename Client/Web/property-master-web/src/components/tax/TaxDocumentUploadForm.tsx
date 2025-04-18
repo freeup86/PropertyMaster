@@ -19,6 +19,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { CreateTaxDocumentRequest } from '../../services/taxDocumentService';
+import documentService, { Document, CreateDocumentRequest } from '../../services/documentService';
 
 interface TaxDocumentUploadFormProps {
   propertyId: string;
@@ -43,6 +44,9 @@ const TaxDocumentUploadForm: React.FC<TaxDocumentUploadFormProps> = ({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileName, setFileName] = useState<string>('');
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [unitId, setUnitId] = useState<string | null>(null);
+  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [expirationDate, setExpirationDate] = useState<string | null>(null);
 
   const documentTypeOptions = [
     'W-2',
@@ -99,12 +103,13 @@ const TaxDocumentUploadForm: React.FC<TaxDocumentUploadFormProps> = ({
       return;
     }
     
+    // Create an object that matches the expected CreateTaxDocumentRequest type
     const documentData: CreateTaxDocumentRequest = {
       propertyId,
-      taxYear,
+      taxYear: new Date().getFullYear(), // Set current year
       documentType: documentType || 'Other',
-      description: description, // Use the default value which is already set
-      category: category || 'Other'
+      description: description || 'No description provided',
+      category: 'Other' // Set a default category
     };
     
     await onUpload(documentData, selectedFile);
