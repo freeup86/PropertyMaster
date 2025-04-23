@@ -260,8 +260,8 @@ const PropertyDetail: React.FC = () => {
               <Tabs value={tabValue} onChange={handleTabChange} aria-label="property tabs">
                 <Tab label="Units" id="property-tab-0" aria-controls="property-tabpanel-0" />
                 <Tab label="Tenants" id="property-tab-1" aria-controls="property-tabpanel-1" />
-                <Tab label="Financials" id="property-tab-2" aria-controls="property-tabpanel-2" />
-                <Tab label="Transactions" id="property-tab-3" aria-controls="property-tabpanel-3" />
+                <Tab label="Transactions" id="property-tab-2" aria-controls="property-tabpanel-2" />
+                <Tab label="Financials" id="property-tab-3" aria-controls="property-tabpanel-3" />
                 <Tab label="Documents" id="property-tab-4" aria-controls="property-tabpanel-4" />
               </Tabs>
             </Box>
@@ -272,10 +272,10 @@ const PropertyDetail: React.FC = () => {
               <TenantManager propertyId={property.id} />
             </TabPanel>
             <TabPanel value={tabValue} index={2}>
-              <PropertyFinancialDashboard propertyId={property.id} />
+              <TransactionManager propertyId={property.id} />
             </TabPanel>
             <TabPanel value={tabValue} index={3}>
-              <TransactionManager propertyId={property.id} />
+              <PropertyFinancialDashboard propertyId={property.id} />
             </TabPanel>
             <TabPanel value={tabValue} index={4}>
               <DocumentManager propertyId={property.id} />

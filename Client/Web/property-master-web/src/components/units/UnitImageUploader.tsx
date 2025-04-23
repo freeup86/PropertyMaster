@@ -52,29 +52,25 @@ const UnitImageUploader: React.FC<UnitImageUploaderProps> = ({
     }
   }, []);
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.files) {
-      setSelectedFiles(Array.from(event.target.files));
-    }
-  };
-
-  const handleUpload = async () => {
-    if (selectedFiles.length > 0) {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    
+    if (files && files.length > 0) {
       try {
-        const newImageUrls = await uploadImages(selectedFiles);
-        setSelectedFiles([]);
+        await Promise.all(
+          Array.from(files).map(async (file: File) => {
+            await uploadImages([file]);
+          })
+        );
+  
         setUploadSuccess(true);
-        // Hide success message after 3 seconds
         setTimeout(() => setUploadSuccess(false), 3000);
-        // Reload images after upload
-        fetchUnitImages();
-        // The callback will be called via the useEffect when images are updated
-      } catch (err) {
-        console.error("Error uploading images:", err);
+      } catch (error) {
+        console.error('Error uploading images:', error);
       }
     }
   };
-
+  
   const openDeleteConfirm = (imageUrl: string) => {
     setConfirmDialog({
       open: true,
@@ -135,25 +131,22 @@ const UnitImageUploader: React.FC<UnitImageUploaderProps> = ({
           onChange={handleFileChange}
         />
         <label htmlFor="image-upload">
-          <Button
-            variant="outlined"
-            component="span"
-            startIcon={<UploadIcon />}
-            sx={{ mr: 2 }}
-          >
-            Select Images
-          </Button>
+        <Button
+        variant="outlined"
+        component="label"
+        startIcon={<UploadIcon />}
+        sx={{ mr: 2 }}
+      >
+        Select Images
+        <input
+          accept="image/*"
+          style={{ display: 'none' }}
+          type="file"
+          multiple
+          onChange={handleFileChange}
+        />
+      </Button>
         </label>
-        
-        {selectedFiles.length > 0 && (
-          <Button
-            variant="contained"
-            onClick={handleUpload}
-            disabled={loading}
-          >
-            Upload {selectedFiles.length} Image(s)
-          </Button>
-        )}
       </Box>
       
       {loading ? (

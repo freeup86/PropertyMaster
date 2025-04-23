@@ -98,35 +98,68 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
         }
 
                     
-        [HttpDelete("image/{unitId}/images")]
+        [HttpDelete("{unitId}/images")]
         public async Task<IActionResult> DeleteUnitImage(
-            Guid propertyId, 
-            Guid unitId, 
+            [FromRoute] Guid propertyId, 
+            [FromRoute] Guid unitId, 
             [FromBody] DeleteImageRequest request)
         {
             try 
             {
+                _logger.LogInformation(
+                    "Delete Image Request: PropertyId={PropertyId}, UnitId={UnitId}, ContentType={ContentType}, Base64ImageLength={Base64ImageLength}", 
+                    propertyId, 
+                    unitId, 
+                    request?.ContentType, 
+                    request?.Base64Image?.Length
+                );
+
+                // Validate input
                 if (request == null || string.IsNullOrEmpty(request.Base64Image))
                 {
-                    return BadRequest("Invalid image data");
+                    _logger.LogWarning("Delete image request received with invalid data");
+                    return BadRequest(new { message = "Invalid image data" });
                 }
 
-                // Reconstruct the full image URL
-                string imageUrl = $"data:{request.ContentType};base64,{request.Base64Image}";
-
-                _logger.LogInformation($"Delete Image Request: PropertyId={propertyId}, UnitId={unitId}, ImageUrl={imageUrl}");
-
-                var result = await _unitService.DeleteUnitImageAsync(unitId, propertyId, imageUrl);
+                // Find the unit
+                var unit = await _context.Units
+                    .Include(u => u.Images)
+                    .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
                 
-                if (result)
-                    return Ok();
-                
-                return NotFound();
+                if (unit == null)
+                {
+                    _logger.LogWarning($"Unit not found: {unitId} for property {propertyId}");
+                    return NotFound(new { message = "Unit not found" });
+                }
+
+                // Find the matching image
+                var imageToDelete = unit.Images
+                    .FirstOrDefault(img => 
+                        img.ContentType == request.ContentType && 
+                        Convert.ToBase64String(img.ImageData) == request.Base64Image
+                    );
+
+                if (imageToDelete == null)
+                {
+                    _logger.LogWarning($"Image not found for Unit {unitId}");
+                    return NotFound(new { message = "Image not found" });
+                }
+
+                // Remove the image
+                _context.UnitImages.Remove(imageToDelete);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Successfully deleted image for Unit {unitId}");
+                return Ok(new { message = "Image deleted successfully" });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting unit image");
-                return StatusCode(500, "An error occurred while deleting the image");
+                _logger.LogError(
+                    ex, 
+                    "Error deleting image for Unit {UnitId}", 
+                    unitId
+                );
+                return StatusCode(500, new { message = "An error occurred while deleting the image" });
             }
         }
 
@@ -151,11 +184,11 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
 
         [HttpPost("{id}/images")]
         public async Task<ActionResult<UnitImageDto>> UploadUnitImages(
-            Guid propertyId, 
-            Guid id, 
+            Guid propertyId,
+            Guid id,
             IFormFile image)
         {
-            try 
+            try
             {
                 var result = await _unitService.UploadUnitImageAsync(propertyId, id, image);
                 return Ok(result);
@@ -166,7 +199,7 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                 return StatusCode(500, "An error occurred while uploading image");
             }
         }
-
+                
         [HttpGet("{id}/images")]
         public async Task<ActionResult<IEnumerable<UnitImageDto>>> GetUnitImages(Guid propertyId, Guid id)
         {
@@ -187,12 +220,6 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
         {
             public string ContentType { get; set; }
             public string Base64Image { get; set; }
-        }
-
-        public class ImageDeleteRequestDto
-        {
-            public string contentType { get; set; }
-            public string base64Image { get; set; }
         }
     }
 }

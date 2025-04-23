@@ -112,41 +112,65 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
         
         public async Task<bool> DeleteUnitImageAsync(Guid unitId, Guid propertyId, string imageUrl)
         {
-            var unit = await _context.Units
-                .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
-            
-            if (unit == null)
-                throw new Exception($"Unit with ID {unitId} not found for property {propertyId}");
-
-            var imagePaths = string.IsNullOrEmpty(unit.ImagePaths) 
-                ? new List<string>() 
-                : unit.ImagePaths.Split(',').ToList();
-
-            if (!imagePaths.Contains(imageUrl))
-                return false;
-
-            // Remove from list and update database
-            imagePaths.Remove(imageUrl);
-            unit.ImagePaths = string.Join(",", imagePaths);
-            await _context.SaveChangesAsync();
-
-            // Delete physical file
-            var webRootPath = _environment.WebRootPath;
-            var filePath = Path.Combine(webRootPath, imageUrl.TrimStart('/'));
-            if (File.Exists(filePath))
+            try 
             {
-                File.Delete(filePath);
-            }
+                // Extract content type and base64 data
+                var parts = imageUrl.Split(',');
+                if (parts.Length < 2)
+                {
+                    _logger.LogWarning($"Invalid image URL format for Unit {unitId}");
+                    return false;
+                }
 
-            return true;
+                var contentType = parts[0].Split(':')[1].Split(';')[0];
+                var base64Image = parts[1];
+
+                // Fetch the unit with images, using AsEnumerable for client-side evaluation
+                var unit = await _context.Units
+                    .Include(u => u.Images)
+                    .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
+                
+                if (unit == null)
+                {
+                    _logger.LogWarning($"Unit not found: {unitId} for property {propertyId}");
+                    return false;
+                }
+
+                // Use client-side evaluation to find the matching image
+                var imageToDelete = unit.Images
+                    .AsEnumerable() // Switch to client-side evaluation
+                    .FirstOrDefault(img => 
+                        img.ContentType == contentType && 
+                        Convert.ToBase64String(img.ImageData) == base64Image
+                    );
+
+                if (imageToDelete == null)
+                {
+                    _logger.LogWarning($"No image found to delete for Unit {unitId}");
+                    return false;
+                }
+
+                // Remove the image from the database
+                _context.UnitImages.Remove(imageToDelete);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation($"Successfully deleted image for Unit {unitId}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error deleting image for Unit {unitId}");
+                throw; // Re-throw to preserve full exception details
+            }
         }
 
+        // Ensure this method is implemented as it was in the original code
         public async Task<UnitImageDto> UploadUnitImageAsync(Guid propertyId, Guid unitId, IFormFile image)
         {
             // Validate unit exists
             var unit = await _context.Units
                 .FirstOrDefaultAsync(u => u.Id == unitId && u.PropertyId == propertyId);
-            
+
             if (unit == null)
                 throw new Exception($"Unit with ID {unitId} not found");
 
@@ -171,7 +195,6 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
             _context.UnitImages.Add(unitImage);
             await _context.SaveChangesAsync();
 
-            // Map and return DTO
             return new UnitImageDto
             {
                 Id = unitImage.Id,
