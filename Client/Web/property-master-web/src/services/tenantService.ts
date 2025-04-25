@@ -31,6 +31,7 @@ export interface UpdateTenantRequest {
   phoneNumber?: string;
   leaseStartDate?: string;
   leaseEndDate?: string;
+  unitId?: string;
 }
 
 const tenantService = {

@@ -6,6 +6,7 @@ import TransactionManager from '../components/financial/TransactionManager';
 import DocumentManager from '../components/documents/DocumentManager';
 import PropertyComparisonTool from '../components/PropertyComparisonTool';
 import { authService } from '../services/authService';
+import RentCollection from '../components/financial/RentCollection';
 
 import { 
   Container, 
@@ -260,9 +261,10 @@ const PropertyDetail: React.FC = () => {
               <Tabs value={tabValue} onChange={handleTabChange} aria-label="property tabs">
                 <Tab label="Units" id="property-tab-0" aria-controls="property-tabpanel-0" />
                 <Tab label="Tenants" id="property-tab-1" aria-controls="property-tabpanel-1" />
-                <Tab label="Transactions" id="property-tab-2" aria-controls="property-tabpanel-2" />
-                <Tab label="Financials" id="property-tab-3" aria-controls="property-tabpanel-3" />
-                <Tab label="Documents" id="property-tab-4" aria-controls="property-tabpanel-4" />
+                <Tab label="Rent Collection" id="property-tab-2" aria-controls="property-tabpanel-2" />
+                <Tab label="Transactions" id="property-tab-3" aria-controls="property-tabpanel-3" />
+                <Tab label="Financials" id="property-tab-4" aria-controls="property-tabpanel-4" />
+                <Tab label="Documents" id="property-tab-5" aria-controls="property-tabpanel-5" />
               </Tabs>
             </Box>
             <TabPanel value={tabValue} index={0}>
@@ -272,12 +274,15 @@ const PropertyDetail: React.FC = () => {
               <TenantManager propertyId={property.id} />
             </TabPanel>
             <TabPanel value={tabValue} index={2}>
-              <TransactionManager propertyId={property.id} />
+              <RentCollection propertyId={property.id} />
             </TabPanel>
             <TabPanel value={tabValue} index={3}>
-              <PropertyFinancialDashboard propertyId={property.id} />
+              <TransactionManager propertyId={property.id} />
             </TabPanel>
             <TabPanel value={tabValue} index={4}>
+              <PropertyFinancialDashboard propertyId={property.id} />
+            </TabPanel>
+            <TabPanel value={tabValue} index={5}>
               <DocumentManager propertyId={property.id} />
             </TabPanel>
           </Paper>

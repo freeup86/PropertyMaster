@@ -1,241 +1,189 @@
-import React, { useState, useCallback, useEffect, useRef } from 'react';
- import { 
-  Container, 
+import React, { useEffect, useState } from 'react';
+import { 
   Typography, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper, 
   Button, 
-  Card, 
-  CardContent, 
-  CardActions, 
-  Box, 
-  CircularProgress, 
-  Alert 
+  IconButton, 
+  Box,
+  Chip,
+  Alert,
+  CircularProgress
 } from '@mui/material';
- import { Add as AddIcon } from '@mui/icons-material';
- import unitService, { Unit } from '../services/unitService';
- 
- // Define props interface
- interface UnitListProps {
+import { 
+  Edit as EditIcon, 
+  Delete as DeleteIcon,
+  Add as AddIcon,
+  Image as ImageIcon
+} from '@mui/icons-material';
+import unitService, { Unit } from '../services/unitService';
+
+interface UnitListProps {
   propertyId: string;
-  onAddUnit?: () => void;
-  onEditUnit?: (unitId: string) => Promise<void>;
-  onDeleteUnit?: (unitId: string)=> void;
-  onManageImages?: (unitId: string)=> void;
- }
- 
- const UnitList: React.FC<UnitListProps> = ({ 
-  propertyId, 
-  onAddUnit, 
-  onEditUnit, 
-  onDeleteUnit, 
-  onManageImages 
+  onAddUnit: () => void;
+  onEditUnit: (unitId: string) => void;
+  onDeleteUnit: (unitId: string) => void;
+  onManageImages?: (unitId: string) => void;
+}
+
+const UnitList: React.FC<UnitListProps> = ({
+  propertyId,
+  onAddUnit,
+  onEditUnit,
+  onDeleteUnit,
+  onManageImages
 }) => {
   const [units, setUnits] = useState<Unit[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const renderCountRef = useRef(0);
-  renderCountRef.current++;
-
-  console.log(`UnitList Rendered (${renderCountRef.current}) - propertyId:`, propertyId, 'state:', units);
-
- 
-  const fetchUnits = useCallback(async () => {
-    console.log('fetchUnits called', { propertyId });
-    if (!propertyId) {
-      setError('Property ID is required');
-      setLoading(false);
-      return;
-    }
- 
-    try {
-      setLoading(true);
-      setError(null);
-      const fetchedUnits = await unitService.getUnits(propertyId);
-      console.log('fetchUnits response:', fetchedUnits); // Log the response
-      setUnits(fetchedUnits);
-      console.log('fetchUnits completed, state updated:', units); // Log state *after* update
-    } catch (err: any) {
-      console.error('fetchUnits error:', err);
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : 'Failed to load units. Please try again later.';
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
-      console.log('fetchUnits finally, loading set to false');
-    }
-  }, [propertyId]);
- 
   useEffect(() => {
-    console.log('useEffect - fetchUnits called on mount');
+    const fetchUnits = async () => {
+      try {
+        setLoading(true);
+        const data = await unitService.getUnits(propertyId);
+        // Advanced sorting function for unit numbers
+        const sortedUnits = data.sort((a, b) => {
+          // Function to extract all numeric components
+          const extractNumbers = (unitNumber: string) => {
+            // Match all number sequences in the unit number
+            const matches = unitNumber.match(/\d+/g) || [];
+            // Convert to numbers, default to 0 if no matches
+            return matches.map(num => parseInt(num, 10));
+          };
+
+          const aNumbers = extractNumbers(a.unitNumber);
+          const bNumbers = extractNumbers(b.unitNumber);
+
+          // Compare each numeric component in order
+          for (let i = 0; i < Math.max(aNumbers.length, bNumbers.length); i++) {
+            const aNum = aNumbers[i] || 0;
+            const bNum = bNumbers[i] || 0;
+            
+            if (aNum !== bNum) {
+              return aNum - bNum;
+            }
+          }
+
+          // If all numeric components are equal, fall back to string comparison
+          return a.unitNumber.localeCompare(b.unitNumber);
+        });
+
+        setUnits(sortedUnits);
+        setLoading(false);
+      } catch (err) {
+        setError('Failed to load units. Please try again later.');
+        setLoading(false);
+      }
+    };
+
     fetchUnits();
-  }, []); //  **** EMPTY dependency array - runs only ONCE on mount ****
- 
-  const handleDeleteUnit = useCallback(async (unitId: string) => {
-    console.log('handleDeleteUnit called for unitId:', unitId);
-    try {
-      await unitService.deleteUnit(propertyId, unitId);
-      setUnits(currentUnits => currentUnits.filter(unit => unit.id !== unitId));
-      onDeleteUnit?.(unitId);
-      console.log('handleDeleteUnit completed for unitId:', unitId);
-    } catch (err: any) {
-      console.error('handleDeleteUnit error:', err);
-      const errorMessage = err instanceof Error 
-        ? err.message 
-        : 'Failed to delete unit. Please try again.';
-      setError(errorMessage);
-    }
-  }, [propertyId, onDeleteUnit]);
- 
-  const handleManageImages = useCallback((unitId: string) => {
-    console.log('handleManageImages called for unitId:', unitId);
-    if (onManageImages) {
-      console.log('handleManageImages callback called');
-      onManageImages(unitId);
-    } else {
-      console.warn('onManageImages callback is undefined!');
-    }
-  }, [onManageImages]);
- 
-  const handleEditUnit = useCallback((unitId: string) => {
-    console.log('handleEditUnit called for unitId:', unitId);
-    if (onEditUnit) {
-      console.log('handleEditUnit callback called');
-      onEditUnit(unitId);
-    } else {
-      console.warn('onEditUnit callback is undefined!');
-    }
-  }, [onEditUnit]);
- 
+  }, [propertyId]);
+
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(value);
+  };
+
   if (loading) {
-    return (
-      <Container sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-        <CircularProgress />
-      </Container>
-    );
+    return <CircularProgress />;
   }
- 
+
   if (error) {
-    return (
-      <Container>
-        <Alert severity="error">{error}</Alert>
-      </Container>
-    );
+    return <Alert severity="error">{error}</Alert>;
   }
- 
+
   return (
-    <Container maxWidth="lg">
+    <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h6">
+          Units ({units.length})
+        </Typography>
+        <Button 
+          variant="outlined" 
+          startIcon={<AddIcon />}
+          onClick={onAddUnit}
+        >
+          Add Unit
+        </Button>
+      </Box>
+      
       {units.length === 0 ? (
-        <Box textAlign="center" p={4}>
-          <Typography variant="h6" gutterBottom>
-            No units found for this property.
-          </Typography>
-          <Typography variant="body1" gutterBottom>
-            Add your first unit to start managing the property.
-          </Typography>
-          {onAddUnit && (
-            <Button 
-              variant="contained" 
-              color="primary" 
-              startIcon={<AddIcon />}
-              onClick={onAddUnit}
-              sx={{ mt: 2 }}
-            >
-              Add Unit
-            </Button>
-          )}
-        </Box>
+        <Typography variant="body1">
+          No units found for this property. Add a unit to get started.
+        </Typography>
       ) : (
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          {units.map((unit) => (
-            <Card 
-              key={unit.id} 
-              sx={{ 
-                width: { 
-                  xs: '100%', 
-                  sm: 'calc(50% - 16px)', 
-                  md: 'calc(33.33% - 16px)' 
-                }, 
-                display: 'flex', 
-                flexDirection: 'column' 
-              }}
-            >
-              <CardContent sx={{ flexGrow: 1 }}>
-                <Typography variant="h6" gutterBottom>
-                  Unit {unit.unitNumber}
-                </Typography>
-                <Box sx={{ display: 'flex', mb: 2 }}>
-                  <Box sx={{ width: '50%' }}>
-                    <Typography variant="caption" color="textSecondary">
-                      Size
-                    </Typography>
-                    <Typography variant="body1">
-                      {unit.size} sq ft
-                    </Typography>
-                  </Box>
-                  <Box sx={{ width: '50%' }}>
-                    <Typography variant="caption" color="textSecondary">
-                      Market Rent
-                    </Typography>
-                    <Typography variant="body1">
-                      ${unit.marketRent.toFixed(2)}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', mb: 2 }}>
-                  <Box sx={{ width: '50%' }}>
-                    <Typography variant="caption" color="textSecondary">
-                      Bedrooms
-                    </Typography>
-                    <Typography variant="body1">
-                      {unit.bedrooms}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ width: '50%' }}>
-                    <Typography variant="caption" color="textSecondary">
-                      Bathrooms
-                    </Typography>
-                    <Typography variant="body1">
-                      {unit.bathrooms}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Typography 
-                  variant="body2" 
-                  color={unit.isOccupied ? 'success.main' : 'error.main'}
-                >
-                  {unit.isOccupied ? 'Occupied' : 'Vacant'}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button 
-                  size="small" 
-                  color="primary" 
-                  onClick={() => onManageImages?.(unit.id)}
-                >
-                  Manage Images
-                </Button>
-                <Button 
-                  size="small" 
-                  color="primary" 
-                  onClick={() => onEditUnit?.(unit.id)}
-                >
-                  Edit
-                </Button>
-                <Button 
-                  size="small" 
-                  color="error" 
-                  onClick={() => handleDeleteUnit(unit.id)}
-                >
-                  Delete
-                </Button>
-              </CardActions>
-            </Card>
-          ))}
-        </Box>
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Unit Number</TableCell>
+                <TableCell>Size</TableCell>
+                <TableCell>Bedrooms</TableCell>
+                <TableCell>Bathrooms</TableCell>
+                <TableCell>Market Rent</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {units.map((unit) => (
+                <TableRow key={unit.id}>
+                  <TableCell>{unit.unitNumber}</TableCell>
+                  <TableCell>{unit.size} sq ft</TableCell>
+                  <TableCell>{unit.bedrooms}</TableCell>
+                  <TableCell>{unit.bathrooms}</TableCell>
+                  <TableCell>{formatCurrency(unit.marketRent)}</TableCell>
+                  <TableCell>
+                    <Chip 
+                      label={unit.isOccupied ? 'Occupied' : 'Vacant'} 
+                      color={unit.isOccupied ? 'success' : 'default'} 
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    {onManageImages && (
+                      <IconButton 
+                        size="small" 
+                        onClick={() => onManageImages(unit.id)}
+                        color="secondary"
+                        title="Manage Images"
+                      >
+                        <ImageIcon fontSize="small" />
+                      </IconButton>
+                    )}
+                    <IconButton 
+                      size="small" 
+                      onClick={() => onEditUnit(unit.id)}
+                      color="primary"
+                      title="Edit Unit"
+                    >
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton 
+                      size="small" 
+                      onClick={() => onDeleteUnit(unit.id)}
+                      color="error"
+                      title="Delete Unit"
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
-    </Container>
+    </Box>
   );
- };
- 
- export default UnitList;
+};
+
+export default UnitList;

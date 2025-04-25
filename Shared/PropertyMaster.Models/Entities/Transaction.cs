@@ -22,7 +22,7 @@ namespace PropertyMaster.Models.Entities
         public Guid CategoryId { get; set; }
         
         public Guid? AccountId { get; set; } = null;
-        public string AccountName { get; set; } = null;
+        public string? AccountName { get; set; } = null;
         
         [Required]
         public TransactionType Type { get; set; }

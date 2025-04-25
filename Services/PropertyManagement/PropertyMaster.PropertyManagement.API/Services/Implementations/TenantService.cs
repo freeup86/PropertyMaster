@@ -88,7 +88,7 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
             return _mapper.Map<TenantDto>(tenant);
         }
 
-        public async Task<TenantDto> UpdateTenantAsync(Guid tenantId, UpdateTenantDto tenantDto)
+       public async Task<TenantDto> UpdateTenantAsync(Guid tenantId, UpdateTenantDto tenantDto)
         {
             var tenant = await _context.Tenants
                 .Include(t => t.Unit)
@@ -98,11 +98,63 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
             if (tenant == null)
                 return null;
 
+            // If a new unit is specified, validate it
+            if (tenantDto.UnitId.HasValue)
+            {
+                var newUnit = await _context.Units
+                    .FirstOrDefaultAsync(u => u.Id == tenantDto.UnitId.Value);
+                
+                if (newUnit == null)
+                    throw new Exception($"Unit with ID {tenantDto.UnitId} not found");
+
+                // Update unit-related logic
+                tenant.UnitId = newUnit.Id;
+            }
+
+            // Map other properties
             _mapper.Map(tenantDto, tenant);
             tenant.ModifiedDate = DateTime.UtcNow;
             
             _context.Tenants.Update(tenant);
+            
+            // If unit changed, update unit occupancy
+            if (tenantDto.UnitId.HasValue)
+            {
+                // Mark new unit as occupied
+                var newUnit = await _context.Units
+                    .FirstOrDefaultAsync(u => u.Id == tenantDto.UnitId.Value);
+                
+                if (newUnit != null)
+                {
+                    newUnit.IsOccupied = true;
+                    _context.Units.Update(newUnit);
+                }
+
+                // If old unit had no other tenants, mark as unoccupied
+                var oldUnitTenants = await _context.Tenants
+                    .CountAsync(t => t.UnitId == tenant.UnitId);
+                
+                if (oldUnitTenants <= 1)
+                {
+                    var oldUnit = await _context.Units
+                        .FirstOrDefaultAsync(u => u.Id == tenant.UnitId);
+                    
+                    if (oldUnit != null)
+                    {
+                        oldUnit.IsOccupied = false;
+                        _context.Units.Update(oldUnit);
+                    }
+                }
+            }
+
             await _context.SaveChangesAsync();
+
+            // Reload navigation properties for mapping
+            await _context.Entry(tenant)
+                .Reference(t => t.Unit)
+                .Query()
+                .Include(u => u.Property)
+                .LoadAsync();
 
             return _mapper.Map<TenantDto>(tenant);
         }

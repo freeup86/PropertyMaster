@@ -11,6 +11,7 @@ import {
   Button, 
   IconButton, 
   Box,
+  Chip,
   Alert,
   CircularProgress
 } from '@mui/material';
@@ -52,7 +53,16 @@ const TenantList: React.FC<TenantListProps> = ({
           data = await tenantService.getTenantsByProperty(propertyId);
         }
         
-        setTenants(data);
+        // Sort tenants by full name in ascending order
+        const sortedTenants = data.sort((a, b) => {
+          // Combine first and last name for sorting
+          const getFullName = (tenant: Tenant) => 
+            `${tenant.lastName.toLowerCase()} ${tenant.firstName.toLowerCase()}`;
+          
+          return getFullName(a).localeCompare(getFullName(b));
+        });
+
+        setTenants(sortedTenants);
         setLoading(false);
       } catch (err) {
         setError('Failed to load tenants. Please try again later.');
@@ -112,7 +122,7 @@ const TenantList: React.FC<TenantListProps> = ({
             <TableBody>
               {tenants.map((tenant) => (
                 <TableRow key={tenant.id}>
-                  <TableCell>{tenant.firstName} {tenant.lastName}</TableCell>
+                  <TableCell>{tenant.lastName}, {tenant.firstName}</TableCell>
                   <TableCell>
                     {tenant.email && <div>{tenant.email}</div>}
                     {tenant.phoneNumber && <div>{tenant.phoneNumber}</div>}

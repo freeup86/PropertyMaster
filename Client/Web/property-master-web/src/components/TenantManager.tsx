@@ -76,10 +76,15 @@ const TenantManager: React.FC<TenantManagerProps> = ({ propertyId, unitId }) => 
     }
   };
 
-  const handleUpdateTenant = async (values: UpdateTenantRequest) => {
+  const handleUpdateTenant = async (values: UpdateTenantRequest & { unitId?: string }) => {
     try {
       if (selectedTenant) {
-        await tenantService.updateTenant(selectedTenant.id, values);
+        // If unitId is provided, include it in the update
+        const updateData = values.unitId 
+          ? { ...values, unitId: values.unitId } 
+          : values;
+        
+        await tenantService.updateTenant(selectedTenant.id, updateData);
         setDialogMode(DialogMode.NONE);
         setSelectedTenant(null);
         setRefreshTrigger(prev => prev + 1);
@@ -141,7 +146,7 @@ const TenantManager: React.FC<TenantManagerProps> = ({ propertyId, unitId }) => 
           <TenantForm 
             initialValues={selectedTenant || undefined}
             units={units}
-            unitId={unitId}
+            propertyId={propertyId}
             onSubmit={(values) => 
               dialogMode === DialogMode.ADD 
                 ? handleCreateTenant(values as CreateTenantRequest) 

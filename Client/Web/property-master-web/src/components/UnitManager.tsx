@@ -136,17 +136,6 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
  
   return (
     <div>
-      <Box sx={{ position: 'relative', height: '60px', left:25}}>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        startIcon={<AddIcon />}
-        onClick={handleAddUnit}
-        sx={{ mb: 2 }}
-      >
-        Add New Unit
-      </Button>
-      </Box>
       <UnitList 
         key={key}
         propertyId={propertyId}

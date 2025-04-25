@@ -22,5 +22,7 @@ namespace PropertyMaster.Models.DTOs
         public DateTime? LeaseStartDate { get; set; }
         
         public DateTime? LeaseEndDate { get; set; }
+
+        public Guid? UnitId { get; set; }
     }
 }
