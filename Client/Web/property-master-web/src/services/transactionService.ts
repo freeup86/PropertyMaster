@@ -189,6 +189,11 @@ const transactionService = {
     await api.delete(`/transactions/${id}`);
   },
 
+  getTransactionsByTenant: async (tenantId: string): Promise<Transaction[]> => {
+    const response = await api.get(`/transactions/tenant/${tenantId}`);
+    return response.data;
+  },
+
 };
 
 export default transactionService;

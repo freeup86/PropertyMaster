@@ -875,6 +875,25 @@ namespace PropertyMaster.PropertyManagement.API.Services.Implementations
                 };
             }
 
+            public async Task<IEnumerable<TransactionDto>> GetTransactionsByTenantIdAsync(Guid tenantId)
+            {
+                // Find the tenant and its associated unit
+                var tenant = await _context.Tenants
+                    .Include(t => t.Unit)
+                    .FirstOrDefaultAsync(t => t.Id == tenantId);
+
+                if (tenant == null || tenant.Unit == null)
+                    return Enumerable.Empty<TransactionDto>();
+
+                // Fetch transactions for the unit
+                var transactions = await _context.Transactions
+                    .Include(t => t.Category)
+                    .Where(t => t.UnitId == tenant.Unit.Id)
+                    .ToListAsync();
+
+                return _mapper.Map<IEnumerable<TransactionDto>>(transactions);
+            }
+
            #endregion
        }
    }

@@ -18,8 +18,10 @@ import {
 import { 
   Edit as EditIcon, 
   Delete as DeleteIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Visibility as VisibilityIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import tenantService, { Tenant } from '../services/tenantService';
 
 interface TenantListProps {
@@ -37,6 +39,7 @@ const TenantList: React.FC<TenantListProps> = ({
   onEditTenant,
   onDeleteTenant
 }) => {
+  const navigate = useNavigate(); // Initialize navigation
   const [tenants, setTenants] = useState<Tenant[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +58,6 @@ const TenantList: React.FC<TenantListProps> = ({
         
         // Sort tenants by full name in ascending order
         const sortedTenants = data.sort((a, b) => {
-          // Combine first and last name for sorting
           const getFullName = (tenant: Tenant) => 
             `${tenant.lastName.toLowerCase()} ${tenant.firstName.toLowerCase()}`;
           
@@ -121,7 +123,17 @@ const TenantList: React.FC<TenantListProps> = ({
             </TableHead>
             <TableBody>
               {tenants.map((tenant) => (
-                <TableRow key={tenant.id}>
+                <TableRow 
+                  key={tenant.id} 
+                  hover // Add hover effect
+                  onClick={() => navigate(`/tenants/${tenant.id}`)} // Navigate to tenant detail
+                  sx={{ 
+                    cursor: 'pointer', 
+                    '&:hover': { 
+                      backgroundColor: 'action.hover' 
+                    } 
+                  }} // Style for clickable row
+                >
                   <TableCell>{tenant.lastName}, {tenant.firstName}</TableCell>
                   <TableCell>
                     {tenant.email && <div>{tenant.email}</div>}
@@ -130,7 +142,7 @@ const TenantList: React.FC<TenantListProps> = ({
                   {!unitId && <TableCell>Unit {tenant.unitNumber}</TableCell>}
                   <TableCell>{formatDate(tenant.leaseStartDate)}</TableCell>
                   <TableCell>{formatDate(tenant.leaseEndDate)}</TableCell>
-                  <TableCell>
+                  <TableCell onClick={(e) => e.stopPropagation()}> {/* Prevent row navigation when clicking actions */}
                     <IconButton 
                       size="small" 
                       onClick={() => onEditTenant(tenant.id)}

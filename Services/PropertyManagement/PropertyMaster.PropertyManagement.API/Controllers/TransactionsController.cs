@@ -130,5 +130,20 @@ namespace PropertyMaster.PropertyManagement.API.Controllers
                 return StatusCode(500, "An error occurred while deleting the transaction");
             }
         }
+
+        [HttpGet("tenant/{tenantId}")]
+        public async Task<ActionResult<IEnumerable<TransactionDto>>> GetTransactionsByTenant(Guid tenantId)
+        {
+            try
+            {
+                var transactions = await _financialService.GetTransactionsByTenantIdAsync(tenantId);
+                return Ok(transactions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving transactions for tenant {TenantId}", tenantId);
+                return StatusCode(500, "An error occurred while retrieving transactions");
+            }
+        }
     }
 }

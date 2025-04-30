@@ -25,5 +25,6 @@ namespace PropertyMaster.PropertyManagement.API.Services.Interfaces
         Task<MultiYearTaxComparisonDto> GetMultiYearTaxComparisonAsync(Guid propertyId, int startYear, int endYear);
         Task<TaxEstimationDto> GetTaxEstimationAsync(TaxEstimationRequestDto request);
         Task<TaxBracketCalculationDto> CalculateTaxWithBracketsAsync(TaxBracketCalculationRequestDto request);
+        Task<IEnumerable<TransactionDto>> GetTransactionsByTenantIdAsync(Guid tenantId);
     }
 }
